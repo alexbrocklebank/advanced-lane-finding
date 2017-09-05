@@ -5,14 +5,19 @@ import matplotlib.image as mpimg
 
 # Sobel matrix processes
 class Frame:
-    def __init__(self, image):
+    def __init__(self, image, undist):
         self.height = image.shape[0]
         self.width = image.shape[1]
         self.image = image
+        self.undist = undist
         self.colorspace = "RGB"
         self.HSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         self.HLS = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
         self.gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        self.M = None
+        self.Minv = None
+        self.warped = None
+
 
     def cut(self, points):
         # Cut out areas of frame that aren't needed
@@ -79,6 +84,8 @@ class Frame:
 
     def perspective_transform(self, image, src, dst):
             # Use cv2.getPerspectiveTransform() to get M, the transform matrix
-        M = cv2.getPerspectiveTransform(src, dst)
+        self.M = cv2.getPerspectiveTransform(src, dst)
+        self.Minv = cv2.getPerspectiveTransform(dst, src)
             # Use cv2.warpPerspective() to warp your image to a top-down view
-        return cv2.warpPerspective(image, M, (self.width, self.height))
+        self.warped = cv2.warpPerspective(image, self.M, (self.width, self.height))
+        return self.warped

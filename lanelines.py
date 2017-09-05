@@ -8,6 +8,7 @@ from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 # Local Project Libraries:
 from camera import Camera
+import line
 from line import Line
 from frame import Frame
 
@@ -26,7 +27,8 @@ dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
 
 # Objects
 cam = Camera()
-lines = Line()
+lane_left = Line()
+lane_right = Line()
 
 
 # Display Test Output
@@ -54,10 +56,11 @@ def test(image1, title1, image2, title2):
 
 
 # Step 1: Calibrate Camera
-#cam.calibrate(calibrate_dir, chessboard)
+cam.calibrate(calibrate_dir, chessboard)
+undist = cam.undistort(test_img)
 
 # Step 2: Set up Frame pipeline
-frame = Frame(test_img)
+frame = Frame(test_img, undist)
 print("Height: {}, Width: {}".format(frame.height, frame.width))
 
 ch = frame.HLS[:,:,2]
@@ -75,4 +78,5 @@ p_t = frame.perspective_transform(combined, src, dst)
 test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
 # Step 4: Lane Lines
-lines.find_lines(p_t, test_img)
+line.find_lines(lane_left, lane_right, p_t, test_img)
+line.draw(lane_left, lane_right, frame)
