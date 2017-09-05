@@ -10,6 +10,7 @@ from IPython.display import HTML
 from camera import Camera
 import line
 from line import Line
+from lane import Lane
 from frame import Frame
 
 
@@ -29,6 +30,7 @@ dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
 cam = Camera()
 lane_left = Line()
 lane_right = Line()
+lane = Lane()
 
 
 # Display Test Output
@@ -61,7 +63,7 @@ undist = cam.undistort(test_img)
 
 # Step 2: Set up Frame pipeline
 frame = Frame(test_img, undist)
-print("Height: {}, Width: {}".format(frame.height, frame.width))
+#print("Height: {}, Width: {}".format(frame.height, frame.width))
 
 ch = frame.HLS[:,:,2]
 gradx = frame.abs_sobel_thresh(ch ,orient='x', sobel_kernel=ksize, thresh=(30, 120))
@@ -71,12 +73,14 @@ dir_binary = frame.dir_threshold(ch ,sobel_kernel=ksize, thresh=(0.7, 1.3))
 
 combined = np.zeros_like(dir_binary)
 combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-test(frame.image, "Original Frame", combined, "Combined Image")
+#test(frame.image, "Original Frame", combined, "Combined Image")
 
 # Step 3: Perspective Transform
 p_t = frame.perspective_transform(combined, src, dst)
-test(frame.image, "Original Frame", p_t, "Perspective Transform")
+#test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
 # Step 4: Lane Lines
-line.find_lines(lane_left, lane_right, p_t, test_img)
-line.draw(lane_left, lane_right, frame)
+lane.find_lines(lane_left, lane_right, p_t, test_img, vis=True)
+lane.draw(lane_left, lane_right, frame)
+lane.find_lines(lane_left, lane_right, p_t, test_img, vis=True)
+lane.draw(lane_left, lane_right, frame)
