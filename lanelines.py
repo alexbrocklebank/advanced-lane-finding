@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 # Import everything needed to edit/save/watch video clips
 from moviepy.editor import VideoFileClip
-from IPython.display import HTML
 # Local Project Libraries:
 from camera import Camera
 import line
@@ -14,6 +13,7 @@ from lane import Lane
 from frame import Frame
 
 
+# TODO: Allow command line switches
 # Variables
 calibrate_dir = "camera_cal/"
 chessboard = (9,6)
@@ -25,6 +25,8 @@ ksize = 3
 src = np.float32([[267,675],[608,442],[679,442],[1053,675]])
 # 4 Destination points dst = np.float32([[,],[,],[,],[,]])
 dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
+output_video = "video_output/output.mp4"
+input_video = 'project_video.mp4'
 
 # Objects
 cam = Camera()
@@ -44,7 +46,6 @@ def test(image1, title1, image2, title2):
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     plt.show()
 
-
 # VIDEO
 #output = 'test_videos_output/solidWhiteRight.mp4'
 ## To speed up the testing process you may want to try your pipeline on a shorter subclip of the video
@@ -59,28 +60,34 @@ def test(image1, title1, image2, title2):
 
 # Step 1: Calibrate Camera
 cam.calibrate(calibrate_dir, chessboard)
-undist = cam.undistort(test_img)
 
-# Step 2: Set up Frame pipeline
-frame = Frame(test_img, undist)
-#print("Height: {}, Width: {}".format(frame.height, frame.width))
+def process_image(image):
+    undist = cam.undistort(image)
 
-ch = frame.HLS[:,:,2]
-gradx = frame.abs_sobel_thresh(ch ,orient='x', sobel_kernel=ksize, thresh=(30, 120))
-grady = frame.abs_sobel_thresh(ch ,orient='y', sobel_kernel=ksize, thresh=(30, 120))
-mag_binary = frame.mag_thresh(ch ,sobel_kernel=ksize, mag_thresh=(30, 120))
-dir_binary = frame.dir_threshold(ch ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    # Step 2: Set up Frame pipeline
+    frame = Frame(image, undist)
+    #print("Height: {}, Width: {}".format(frame.height, frame.width))
 
-combined = np.zeros_like(dir_binary)
-combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-#test(frame.image, "Original Frame", combined, "Combined Image")
+    ch = frame.HLS[:,:,2]
+    gradx = frame.abs_sobel_thresh(ch ,orient='x', sobel_kernel=ksize, thresh=(30, 120))
+    grady = frame.abs_sobel_thresh(ch ,orient='y', sobel_kernel=ksize, thresh=(30, 120))
+    mag_binary = frame.mag_thresh(ch ,sobel_kernel=ksize, mag_thresh=(30, 120))
+    dir_binary = frame.dir_threshold(ch ,sobel_kernel=ksize, thresh=(0.7, 1.3))
 
-# Step 3: Perspective Transform
-p_t = frame.perspective_transform(combined, src, dst)
-#test(frame.image, "Original Frame", p_t, "Perspective Transform")
+    combined = np.zeros_like(dir_binary)
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    #test(frame.image, "Original Frame", combined, "Combined Image")
 
-# Step 4: Lane Lines
-lane.find_lines(lane_left, lane_right, p_t, test_img, vis=True)
-lane.draw(lane_left, lane_right, frame)
-lane.find_lines(lane_left, lane_right, p_t, test_img, vis=True)
-lane.draw(lane_left, lane_right, frame)
+    # Step 3: Perspective Transform
+    p_t = frame.perspective_transform(combined, src, dst)
+    #test(frame.image, "Original Frame", p_t, "Perspective Transform")
+
+    # Step 4: Lane Lines
+    if lane.find_lines(lane_left, lane_right, p_t, image):
+        return lane.draw(lane_left, lane_right, frame)
+    else:
+        return frame.undist
+
+clip = VideoFileClip(input_video)
+out_clip = clip.fl_image(process_image)
+out_clip.write_videofile(output_video, audio=False)
