@@ -84,6 +84,13 @@ class Frame:
         # Return the mask as binary_output image
         return mask
 
+    def hls_thresh(self, img, thresh=(100, 255)):
+        hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+        s_channel = hls[:,:,2]
+        binary_output = np.zeros_like(s_channel)
+        binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
+        return binary_output
+
     def perspective_transform(self, image, src, dst):
             # Use cv2.getPerspectiveTransform() to get M, the transform matrix
         self.M = cv2.getPerspectiveTransform(src, dst)

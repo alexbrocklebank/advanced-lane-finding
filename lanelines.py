@@ -69,13 +69,15 @@ def process_image(image):
     #print("Height: {}, Width: {}".format(frame.height, frame.width))
 
     ch = frame.HLS[:,:,2]
-    gradx = frame.abs_sobel_thresh(ch ,orient='x', sobel_kernel=ksize, thresh=(30, 120))
-    grady = frame.abs_sobel_thresh(ch ,orient='y', sobel_kernel=ksize, thresh=(30, 120))
-    mag_binary = frame.mag_thresh(ch ,sobel_kernel=ksize, mag_thresh=(30, 120))
-    dir_binary = frame.dir_threshold(ch ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    gray = frame.gray
+    gradx = frame.abs_sobel_thresh(frame.gray ,orient='x', sobel_kernel=ksize, thresh=(50, 255))
+    grady = frame.abs_sobel_thresh(frame.gray ,orient='y', sobel_kernel=ksize, thresh=(50, 255))
+    mag_binary = frame.mag_thresh(frame.gray ,sobel_kernel=ksize, mag_thresh=(50, 255))
+    dir_binary = frame.dir_threshold(frame.gray ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
 
     combined = np.zeros_like(dir_binary)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
     #test(frame.image, "Original Frame", combined, "Combined Image")
 
     # Step 3: Perspective Transform
