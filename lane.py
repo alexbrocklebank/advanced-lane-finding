@@ -22,19 +22,44 @@ class Lane():
         s.left_lane_inds = []
         s.right_lane_inds = []
 
-        if left.detected == False | right.detected == False:
-            # If either is undetected, reset both to false
-            left.detected = False
-            right.detected = False
+
+        # If there is a previous frame
+        if right.detected == True and left.detected == True:
+            # Assume you now have a new warped binary image
+            # from the next frame of video (also called "binary_warped")
+            # It's now much easier to find line pixels!
+
+            s.left_lane_inds = ((s.nonzerox > (left.best_fit[0]*(s.nonzeroy**2) + left.best_fit[1]*s.nonzeroy +
+                                left.best_fit[2] - s.margin)) & (s.nonzerox < (left.best_fit[0]*(s.nonzeroy**2) +
+                                left.best_fit[1]*s.nonzeroy + left.best_fit[2] + s.margin)))
+
+            s.right_lane_inds = ((s.nonzerox > (right.best_fit[0]*(s.nonzeroy**2) + right.best_fit[1]*s.nonzeroy +
+                                 right.best_fit[2] - s.margin)) & (s.nonzerox < (right.best_fit[0]*(s.nonzeroy**2) +
+                                 right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))
+
+            # Extract left and right line pixel positions
+            left.allx = s.nonzerox[s.left_lane_inds]
+            left.ally = s.nonzeroy[s.left_lane_inds]
+            right.allx = s.nonzerox[s.right_lane_inds]
+            right.ally = s.nonzeroy[s.right_lane_inds]
+
+            minimum_indices = 10
+            if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
+                # Detection Failed, use Window detection
+                left.detected = False
+                right.detected = False
+
+        if left.detected == False or right.detected == False:
+            # If either is undetected
+
 
             # Take a histogram of the bottom half of the image
-            sh = int(binary_warped.shape[0]/2)
-            s.histogram = np.sum(binary_warped[sh:,:], axis=0)
+            s.histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
             # Find the peak of the left and right halves of the histogram
             # These will be the starting point for the left and right lines
             midpoint = np.int(s.histogram.shape[0]/2)
-            s.leftx_base = np.argmax(s.histogram[:midpoint])
-            s.rightx_base = np.argmax(s.histogram[midpoint:]) + midpoint
+            s.leftx_base = np.argmax(s.histogram[100:midpoint]) + 100
+            s.rightx_base = np.argmax(s.histogram[midpoint:-100]) + midpoint
 
             # Set height of windows
             s.window_height = np.int(binary_warped.shape[0]/s.nwindows)
@@ -54,6 +79,7 @@ class Lane():
                 win_xright_high = s.rightx_current + s.margin
                 # Draw the windows on the visualization image
                 if vis:
+                    s.out_img = (np.dstack((binary_warped, binary_warped, binary_warped))*255).astype('uint8')
                     cv2.rectangle(s.out_img,(win_xleft_low,win_y_low),(win_xleft_high,win_y_high),
                                   (0,255,0), 2)
                     cv2.rectangle(s.out_img,(win_xright_low,win_y_low),(win_xright_high,win_y_high),
@@ -76,25 +102,21 @@ class Lane():
             s.left_lane_inds = np.concatenate(s.left_lane_inds)
             s.right_lane_inds = np.concatenate(s.right_lane_inds)
 
-        # If there is a previous frame
-        else:
-            # Assume you now have a new warped binary image
-            # from the next frame of video (also called "binary_warped")
-            # It's now much easier to find line pixels!
+            left.detected = True
+            right.detected = True
 
-            s.left_lane_inds = ((s.nonzerox > (left.best_fit[0]*(s.nonzeroy**2) + left.best_fit[1]*s.nonzeroy +
-                                left.best_fit[2] - s.margin)) & (s.nonzerox < (left.best_fit[0]*(s.nonzeroy**2) +
-                                left.best_fit[1]*s.nonzeroy + left.best_fit[2] + s.margin)))
-
-            s.right_lane_inds = ((s.nonzerox > (right.best_fit[0]*(s.nonzeroy**2) + right.best_fit[1]*s.nonzeroy +
-                                 right.best_fit[2] - s.margin)) & (s.nonzerox < (right.best_fit[0]*(s.nonzeroy**2) +
-                                 right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))
 
         # Extract left and right line pixel positions
         left.allx = s.nonzerox[s.left_lane_inds]
         left.ally = s.nonzeroy[s.left_lane_inds]
         right.allx = s.nonzerox[s.right_lane_inds]
         right.ally = s.nonzeroy[s.right_lane_inds]
+
+        minimum_indices = 10
+        if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
+            # Detection Failed, use Window detection
+            left.detected = False
+            right.detected = False
 
         # Fit a second order polynomial to each
         left.best_fit = np.polyfit(left.ally, left.allx, 2)
@@ -115,7 +137,6 @@ class Lane():
 
         if vis:
             # Create an image to draw on and an image to show the selection window
-            s.out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
             s.window_img = np.zeros_like(s.out_img)
             # Color in left and right line pixels
 
@@ -203,6 +224,7 @@ class Lane():
         right.radius_of_curvature = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
         # Now our radius of curvature is in meters
         #print(left.radius_of_curvature, 'm', right.radius_of_curvature, 'm')
+        #print("Left Fit: ", s.left_fit, ", Right Fit: ", s.right_fit)
         # Example values: 632.1 m    626.2 m
         return True
 
