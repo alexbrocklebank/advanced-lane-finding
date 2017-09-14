@@ -229,6 +229,17 @@ class Lane():
         return True
 
 
+    def vehicle_offset(s, undist):
+        bottom_y = undist.shape[0] - 1
+        bottom_x_left = s.left_fit[0]*(bottom_y**2) + s.left_fit[1]*bottom_y + s.left_fit[2]
+        bottom_x_right = s.right_fit[0]*(bottom_y**2) + s.right_fit[1]*bottom_y + s.right_fit[2]
+        offset = undist.shape[1]/2 - (bottom_x_left + bottom_x_right)/2
+        xm_per_pix = 3.7/700
+        offset *= xm_per_pix
+
+        return offset
+
+
     def draw(s, left, right, frame):
         # Create an image to draw the lines on
         warp_zero = np.zeros_like(frame.warped).astype(np.uint8)
@@ -248,6 +259,15 @@ class Lane():
         newwarp = cv2.warpPerspective(color_warp, frame.Minv, (frame.width, frame.height))
         # Combine the result with the original image
         result = cv2.addWeighted(frame.undist, 1, newwarp, 0.3, 0)
+
+        avg_curve = (left.radius_of_curvature + right.radius_of_curvature)/2
+        label_str = 'Radius of Curve: %.1f m' % avg_curve
+        result = cv2.putText(result, label_str, (30,40), 0, 1, (0,0,0), 2, cv2.LINE_AA)
+
+        offset = s.vehicle_offset(frame.undist)
+        label_str = 'Vehicle Offset from Center: %.1f m' % offset
+        result = cv2.putText(result, label_str, (30,70), 0, 1, (0,0,0), 2, cv2.LINE_AA)
+
         #plt.imshow(result)
         #plt.show()
         return result

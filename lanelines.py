@@ -22,9 +22,11 @@ test_img = mpimg.imread("test_images/straight_lines2.jpg")
 # Sobel Kernel Size
 ksize = 3
 # 4 Source points in Lane Trapezoid
-src = np.float32([[267,675],[608,442],[679,442],[1053,675]])
+#src = np.float32([[267,675],[608,442],[679,442],[1053,675]])
+src = np.float32([[200,720],[1100,720],[595,450],[685,450]])
 # 4 Destination points dst = np.float32([[,],[,],[,],[,]])
-dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
+#dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
+dst = np.float32([[300,720],[980,720],[300,0],[980,0]])
 output_video = "video_output/output.mp4"
 input_video = 'project_video.mp4'
 
@@ -67,6 +69,7 @@ def process_image(image):
     # Step 2: Set up Frame pipeline
     frame = Frame(image, undist)
     #print("Height: {}, Width: {}".format(frame.height, frame.width))
+    #test(frame.image, "Original Frame", undist, "Undistorted Image")
 
     ch = frame.HLS[:,:,2]
     gray = frame.gray
@@ -85,6 +88,7 @@ def process_image(image):
     #test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
     # Step 4: Lane Lines
+    #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):
     if lane.find_lines(lane_left, lane_right, p_t, image):
         return lane.draw(lane_left, lane_right, frame)
     else:
