@@ -37,21 +37,9 @@ class Lane():
                                  right.best_fit[2] - s.margin)) & (s.nonzerox < (right.best_fit[0]*(s.nonzeroy**2) +
                                  right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))
 
-            # Extract left and right line pixel positions
-            left.allx = s.nonzerox[s.left_lane_inds]
-            left.ally = s.nonzeroy[s.left_lane_inds]
-            right.allx = s.nonzerox[s.right_lane_inds]
-            right.ally = s.nonzeroy[s.right_lane_inds]
-
-            minimum_indices = 10
-            if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
-                # Detection Failed, use Window detection
-                left.detected = False
-                right.detected = False
 
         if left.detected == False or right.detected == False:
             # If either is undetected
-
 
             # Take a histogram of the bottom half of the image
             s.histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
@@ -102,8 +90,8 @@ class Lane():
             s.left_lane_inds = np.concatenate(s.left_lane_inds)
             s.right_lane_inds = np.concatenate(s.right_lane_inds)
 
-            left.detected = True
-            right.detected = True
+            #left.detected = True
+            #right.detected = True
 
 
         # Extract left and right line pixel positions
@@ -115,8 +103,7 @@ class Lane():
         minimum_indices = 10
         if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
             # Detection Failed, use Window detection
-            left.detected = False
-            right.detected = False
+            return True
 
         # Fit a second order polynomial to each
         left.best_fit = np.polyfit(left.ally, left.allx, 2)
@@ -139,8 +126,6 @@ class Lane():
             # Create an image to draw on and an image to show the selection window
             s.window_img = np.zeros_like(s.out_img)
             # Color in left and right line pixels
-
-
 
             s.out_img[s.nonzeroy[s.left_lane_inds], s.nonzerox[s.left_lane_inds]] = [255, 0, 0]
             s.out_img[s.nonzeroy[s.right_lane_inds], s.nonzerox[s.right_lane_inds]] = [0, 0, 255]
@@ -175,28 +160,28 @@ class Lane():
 
         # Generate some fake data to represent lane-line pixels
         s.ploty = np.linspace(0, 719, num=720)# to cover same y-range as image
-        quadratic_coeff = 3e-4 # arbitrary quadratic coefficient
-        # For each y position generate random x position within +/-50 pix
-        # of the line base position in each case (x=200 for left, and x=900 for right)
-        s.leftx = np.array([200 + (y**2)*quadratic_coeff + np.random.randint(-50, high=51)
-                                      for y in s.ploty])
-        s.rightx = np.array([900 + (y**2)*quadratic_coeff + np.random.randint(-50, high=51)
-                                        for y in s.ploty])
 
-        s.leftx = s.leftx[::-1]  # Reverse to match top-to-bottom in y
-        s.rightx = s.rightx[::-1]  # Reverse to match top-to-bottom in y
+        #print("Length of Left X: ", left.allx.shape)
+        #print("Length of Right X: ", right.allx.shape)
+        #print("Length of Plot Y: ", s.ploty.shape)
 
         # Fit a second order polynomial to pixel positions in each fake lane line
-        s.left_fit = np.polyfit(s.ploty, s.leftx, 2)
+        s.left_fit = np.polyfit(left.ally, left.allx, 2)
         s.left_fitx = left.best_fit[0]*s.ploty**2 + left.best_fit[1]*s.ploty + left.best_fit[2]
-        s.right_fit = np.polyfit(s.ploty, s.rightx, 2)
+        s.right_fit = np.polyfit(right.ally, right.allx, 2)
         s.right_fitx = right.best_fit[0]*s.ploty**2 + right.best_fit[1]*s.ploty + right.best_fit[2]
 
-        # Plot up the fake data
+        # Plot up the data
         if vis:
             mark_size = 3
-            plt.plot(s.leftx, s.ploty, 'o', color='red', markersize=mark_size)
-            plt.plot(s.rightx, s.ploty, 'o', color='blue', markersize=mark_size)
+            left_max = min(left.allx.size, left.ally.size)
+            right_max = min(right.allx.size, right.ally.size)
+            slice_lx = left.allx[0:left_max]
+            slice_ly = left.ally[0:left_max]
+            slice_rx = right.allx[0:right_max]
+            slice_ry = left.ally[0:right_max]
+            plt.plot(slice_lx, slice_ly, 'o', color='red', markersize=mark_size)
+            plt.plot(slice_rx, slice_ry, 'o', color='blue', markersize=mark_size)
             plt.xlim(0, 1280)
             plt.ylim(0, 720)
             plt.plot(s.left_fitx, s.ploty, color='green', linewidth=3)
@@ -217,8 +202,8 @@ class Lane():
         xm_per_pix = 3.7/700 # meters per pixel in x dimension
 
         # Fit new polynomials to x,y in world space
-        left_fit_cr = np.polyfit(s.ploty*ym_per_pix, s.leftx*xm_per_pix, 2)
-        right_fit_cr = np.polyfit(s.ploty*ym_per_pix, s.rightx*xm_per_pix, 2)
+        left_fit_cr = np.polyfit(left.ally*ym_per_pix, left.allx*xm_per_pix, 2)
+        right_fit_cr = np.polyfit(right.ally*ym_per_pix, right.allx*xm_per_pix, 2)
         # Calculate the new radii of curvature
         left.radius_of_curvature = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right.radius_of_curvature = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])

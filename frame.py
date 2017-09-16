@@ -15,6 +15,8 @@ class Frame:
         self.colorspace = "RGB"
         self.HSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         self.HLS = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+        self.LUV = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
+        self.LAB = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
         self.gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         self.M = None
         self.Minv = None

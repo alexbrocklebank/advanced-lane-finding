@@ -9,7 +9,7 @@ class Camera:
     def calibrate(self, calibrate_dir, chessboard):
         # Create Objectpoint Labels
         objp = np.zeros((chessboard[1]*chessboard[0],3), np.float32)
-        objp[:,:2] = np.mgrid[0:chessboard[1],0:chessboard[0]].T.reshape(-1,2)
+        objp[:,:2] = np.mgrid[0:chessboard[0],0:chessboard[1]].T.reshape(-1,2)
         # Create empty lists for object and image points
         objpoints = []
         imgpoints = []

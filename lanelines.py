@@ -17,7 +17,7 @@ from frame import Frame
 # Variables
 calibrate_dir = "camera_cal/"
 chessboard = (9,6)
-test_img = mpimg.imread("test_images/straight_lines2.jpg")
+test_img = mpimg.imread("test_images/test5.jpg")
 #test_img = cv2.cvtColor(test_img, cv2.COLOR_RGB2HSV)
 # Sobel Kernel Size
 ksize = 3
@@ -48,17 +48,6 @@ def test(image1, title1, image2, title2):
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     plt.show()
 
-# VIDEO
-#output = 'test_videos_output/solidWhiteRight.mp4'
-## To speed up the testing process you may want to try your pipeline on a shorter subclip of the video
-## To do so add .subclip(start_second,end_second) to the end of the line below
-## Where start_second and end_second are integer values representing the start and end of the subclip
-## You may also uncomment the following line for a subclip of the first 5 seconds
-##clip1 = VideoFileClip("test_videos/solidWhiteRight.mp4").subclip(0,5)
-#clip1 = VideoFileClip("test_videos/solidWhiteRight.mp4")
-#clip = clip1.fl_image(process_image) #NOTE: this function expects color images!!
-#clip.write_videofile(output, audio=False)
-
 
 # Step 1: Calibrate Camera
 cam.calibrate(calibrate_dir, chessboard)
@@ -69,23 +58,58 @@ def process_image(image):
     # Step 2: Set up Frame pipeline
     frame = Frame(image, undist)
     #print("Height: {}, Width: {}".format(frame.height, frame.width))
-    #test(frame.image, "Original Frame", undist, "Undistorted Image")
+    test(frame.image, "Original Frame", undist, "Undistorted Image")
 
-    ch = frame.HLS[:,:,2]
+    S = frame.HLS[:,:,2]
+    L = frame.LUV[:,:,0]
+    B = frame.LAB[:,:,2]
     gray = frame.gray
-    gradx = frame.abs_sobel_thresh(frame.gray ,orient='x', sobel_kernel=ksize, thresh=(50, 255))
-    grady = frame.abs_sobel_thresh(frame.gray ,orient='y', sobel_kernel=ksize, thresh=(50, 255))
-    mag_binary = frame.mag_thresh(frame.gray ,sobel_kernel=ksize, mag_thresh=(50, 255))
-    dir_binary = frame.dir_threshold(frame.gray ,sobel_kernel=ksize, thresh=(0.7, 1.3))
-    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
 
+    gradx = frame.abs_sobel_thresh(L ,orient='x', sobel_kernel=ksize, thresh=(225, 255))
+    test(frame.image, "Original Frame", gradx, "LUV L Binary Sobel X")# blank
+    grady = frame.abs_sobel_thresh(L ,orient='y', sobel_kernel=ksize, thresh=(225, 255))
+    test(frame.image, "Original Frame", grady, "LUV L Binary Sobel Y")# blank
+    mag_binary = frame.mag_thresh(L ,sobel_kernel=ksize, mag_thresh=(225, 255))
+    test(frame.image, "Original Frame", mag_binary, "LUV L Binary Mag Thresh") # blank
+    dir_binary = frame.dir_threshold(L ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    test(frame.image, "Original Frame", dir_binary, "LUV L Dir Binary") # horrible noise
+    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
+    test(frame.image, "Original Frame", hls_bin, "LUV L HLS Binary") #Dark shadows amplified, lines in shadow hidden
     combined = np.zeros_like(dir_binary)
     combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    #test(frame.image, "Original Frame", combined, "Combined Image")
+    test(frame.image, "Original Frame", combined, "LUV Combined L Binary") # same as hls_bin
+
+    gradx = frame.abs_sobel_thresh(B ,orient='x', sobel_kernel=ksize, thresh=(155, 200))
+    test(frame.image, "Original Frame", gradx, "LAB B Binary Sobel X") # blank
+    grady = frame.abs_sobel_thresh(B ,orient='y', sobel_kernel=ksize, thresh=(155, 200))
+    test(frame.image, "Original Frame", grady, "LAB B Binary Sobel Y") # blank
+    mag_binary = frame.mag_thresh(B ,sobel_kernel=ksize, mag_thresh=(155, 200))
+    test(frame.image, "Original Frame", mag_binary, "LAB B Binary Mag Thresh") # almost blank
+    dir_binary = frame.dir_threshold(B ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    test(frame.image, "Original Frame", dir_binary, "LAB B Dir Binary") # noisy, yellow line on concrete shows
+    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
+    test(frame.image, "Original Frame", hls_bin, "LAB B HLS Binary") # pretty good
+    combined = np.zeros_like(dir_binary)
+    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
+    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin
+
+    gradx = frame.abs_sobel_thresh(S ,orient='x', sobel_kernel=ksize, thresh=(30, 170))
+    test(frame.image, "Original Frame", gradx, "HLS S Binary Sobel X") # pretty full image, white lines better
+    grady = frame.abs_sobel_thresh(S ,orient='y', sobel_kernel=ksize, thresh=(30, 170))
+    test(frame.image, "Original Frame", grady, "HLS S Binary Sobel Y") # Also pretty good
+    mag_binary = frame.mag_thresh(S ,sobel_kernel=ksize, mag_thresh=(30, 170))
+    test(frame.image, "Original Frame", mag_binary, "HLS S Binary Mag Thresh") # pretty good
+    dir_binary = frame.dir_threshold(S ,sobel_kernel=ksize, thresh=(0.7, 1.3))
+    test(frame.image, "Original Frame", dir_binary, "HLS S Dir Binary") # noisy as hell
+    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
+    test(frame.image, "Original Frame", hls_bin, "HLS S HLS Binary") # Shadow affected
+    combined = np.zeros_like(dir_binary)
+    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
+    test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good
 
     # Step 3: Perspective Transform
     p_t = frame.perspective_transform(combined, src, dst)
-    #test(frame.image, "Original Frame", p_t, "Perspective Transform")
+    test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
     # Step 4: Lane Lines
     #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):
@@ -94,6 +118,8 @@ def process_image(image):
     else:
         return frame.undist
 
-clip = VideoFileClip(input_video)
-out_clip = clip.fl_image(process_image)
-out_clip.write_videofile(output_video, audio=False)
+out = process_image(test_img)
+test(test_img, "In", out, "Out")
+#clip = VideoFileClip(input_video)
+#out_clip = clip.fl_image(process_image)
+#out_clip.write_videofile(output_video, audio=False)
