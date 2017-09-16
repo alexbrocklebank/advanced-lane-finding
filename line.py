@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+
 # Lane Line class
 class Line():
     def __init__(self):

@@ -52,6 +52,7 @@ def test(image1, title1, image2, title2):
 # Step 1: Calibrate Camera
 cam.calibrate(calibrate_dir, chessboard)
 
+
 def process_image(image):
     undist = cam.undistort(image)
 

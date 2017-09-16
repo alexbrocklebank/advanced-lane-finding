@@ -5,6 +5,7 @@ import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
+
 # Sobel matrix processes
 class Frame:
     def __init__(self, image, undist):
@@ -21,7 +22,6 @@ class Frame:
         self.M = None
         self.Minv = None
         self.warped = None
-
 
     def cut(self, points):
         # Cut out areas of frame that aren't needed
@@ -48,7 +48,6 @@ class Frame:
         # Return the mask as binary output image
         return mask
 
-
     def mag_thresh(self, ch, sobel_kernel=3, mag_thresh=(0, 255)):
         # Calculate gradient magnitude
         # Apply threshold
@@ -67,7 +66,6 @@ class Frame:
         # Return the mask as binary_output image
         return mask
 
-
     def dir_threshold(self, ch, sobel_kernel=3, thresh=(0, np.pi/2)):
         # Calculate gradient direction
         # Apply threshold
@@ -78,7 +76,7 @@ class Frame:
         # Take the absolute value of the x and y gradients
         abs_x = np.absolute(grad_x)
         abs_y = np.absolute(grad_y)
-        # Use np.arctan2(abs_sobely, abs_sobelx) to calculate the direction of the gradient
+        # Use np.arctan2(abs_sobely, abs_sobelx) to find the dir of the gradient
         direction = np.arctan2(abs_y, abs_x)
         # Create a binary mask where direction thresholds are met
         mask = np.zeros_like(ch)

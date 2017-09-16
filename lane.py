@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 from line import Line
 
+
 class Lane():
     def __init__(self):
         # Set the width of the windows +/- margin
@@ -12,7 +13,6 @@ class Lane():
         # Choose the number of sliding windows
         self.nwindows = 9
 
-
     def find_lines(s, left, right, binary_warped, image, vis=False):
         # Identify the x and y positions of all nonzero pixels in the image
         s.nonzero = binary_warped.nonzero()
@@ -21,7 +21,6 @@ class Lane():
         # Create empty lists to receive left and right lane pixel indices
         s.left_lane_inds = []
         s.right_lane_inds = []
-
 
         # If there is a previous frame
         if right.detected == True and left.detected == True:
@@ -36,7 +35,6 @@ class Lane():
             s.right_lane_inds = ((s.nonzerox > (right.best_fit[0]*(s.nonzeroy**2) + right.best_fit[1]*s.nonzeroy +
                                  right.best_fit[2] - s.margin)) & (s.nonzerox < (right.best_fit[0]*(s.nonzeroy**2) +
                                  right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))
-
 
         if left.detected == False or right.detected == False:
             # If either is undetected
@@ -80,7 +78,7 @@ class Lane():
                 # Append these indices to the lists
                 s.left_lane_inds.append(good_left_inds)
                 s.right_lane_inds.append(good_right_inds)
-                # If you found > minpix pixels, recenter next window on their mean position
+                # If you found > min pixels, recenter next window on mean pos
                 if len(good_left_inds) > s.minpix:
                     leftx_current = np.int(np.mean(s.nonzerox[good_left_inds]))
                 if len(good_right_inds) > s.minpix:
@@ -90,9 +88,9 @@ class Lane():
             s.left_lane_inds = np.concatenate(s.left_lane_inds)
             s.right_lane_inds = np.concatenate(s.right_lane_inds)
 
+            # NOTE: Commented to use WINDOWED DETECTION ON EVERY FRAME
             #left.detected = True
             #right.detected = True
-
 
         # Extract left and right line pixel positions
         left.allx = s.nonzerox[s.left_lane_inds]
@@ -123,7 +121,7 @@ class Lane():
         #    right.detected = True
 
         if vis:
-            # Create an image to draw on and an image to show the selection window
+            # Create image to draw on and an image to show the selection window
             s.window_img = np.zeros_like(s.out_img)
             # Color in left and right line pixels
 
@@ -137,7 +135,7 @@ class Lane():
             plt.show()
 
             # Generate a polygon to illustrate the search window area
-            # And recast the x and y points into usable format for cv2.fillPoly()
+            # And recast the x,y points into usable format for cv2.fillPoly()
             left_line_window1 = np.array([np.transpose(np.vstack([left.bestx-s.margin, s.ploty]))])
             left_line_window2 = np.array([np.flipud(np.transpose(np.vstack([left.bestx+s.margin,
                                           s.ploty])))])
@@ -159,21 +157,25 @@ class Lane():
             plt.show()
 
         # Generate some fake data to represent lane-line pixels
-        s.ploty = np.linspace(0, 719, num=720)# to cover same y-range as image
+        # TODO: Remove this fake data
+        s.ploty = np.linspace(0, 719, num=720)  # to cover same y-range as image
 
         #print("Length of Left X: ", left.allx.shape)
         #print("Length of Right X: ", right.allx.shape)
         #print("Length of Plot Y: ", s.ploty.shape)
 
-        # Fit a second order polynomial to pixel positions in each fake lane line
+        # Fit a second order polynomial to pixel positions in each lane line
         s.left_fit = np.polyfit(left.ally, left.allx, 2)
         s.left_fitx = left.best_fit[0]*s.ploty**2 + left.best_fit[1]*s.ploty + left.best_fit[2]
         s.right_fit = np.polyfit(right.ally, right.allx, 2)
         s.right_fitx = right.best_fit[0]*s.ploty**2 + right.best_fit[1]*s.ploty + right.best_fit[2]
 
+        # TODO: Ensure Polynomials are similar between lanes
+
         # Plot up the data
         if vis:
             mark_size = 3
+            # TODO: Figure out why X and Y data is not of same length
             left_max = min(left.allx.size, left.ally.size)
             right_max = min(right.allx.size, right.ally.size)
             slice_lx = left.allx[0:left_max]
@@ -190,12 +192,15 @@ class Lane():
             plt.show()
 
         # Define y-value where we want radius of curvature
-        # I'll choose the maximum y-value, corresponding to the bottom of the image
+        # Choose the maximum y-value, corresponding to the bottom of the image
         y_eval = np.max(s.ploty)
         left.radius_of_curvature = ((1 + (2*s.left_fit[0]*y_eval + s.left_fit[1])**2)**1.5) / np.absolute(2*s.left_fit[0])
         right.radius_of_curvature = ((1 + (2*s.right_fit[0]*y_eval + s.right_fit[1])**2)**1.5) / np.absolute(2*s.right_fit[0])
         #print(left.radius_of_curvature, right.radius_of_curvature)
         # Example values: 1926.74 1908.48
+
+        # TODO: Check Radius variance between L and R
+        #
 
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = 30/720 # meters per pixel in y dimension
@@ -213,7 +218,6 @@ class Lane():
         # Example values: 632.1 m    626.2 m
         return True
 
-
     def vehicle_offset(s, undist):
         bottom_y = undist.shape[0] - 1
         bottom_x_left = s.left_fit[0]*(bottom_y**2) + s.left_fit[1]*bottom_y + s.left_fit[2]
@@ -223,7 +227,6 @@ class Lane():
         offset *= xm_per_pix
 
         return offset
-
 
     def draw(s, left, right, frame):
         # Create an image to draw the lines on
@@ -240,7 +243,7 @@ class Lane():
         # Draw the lane onto the warped blank image
         cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
 
-        # Warp the blank back to original image space using inverse perspective matrix (Minv)
+        # Warp blank back to orig img space using inv perspective matrix (Minv)
         newwarp = cv2.warpPerspective(color_warp, frame.Minv, (frame.width, frame.height))
         # Combine the result with the original image
         result = cv2.addWeighted(frame.undist, 1, newwarp, 0.3, 0)
