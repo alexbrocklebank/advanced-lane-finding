@@ -9,7 +9,7 @@ class Lane():
         # Set the width of the windows +/- margin
         self.margin = 100
         # Set minimum number of pixels found to recenter window
-        self.minpix = 50
+        self.minpix = 40
         # Choose the number of sliding windows
         self.nwindows = 9
 
@@ -69,10 +69,8 @@ class Lane():
                 # Draw the windows on the visualization image
                 if vis:
                     s.out_img = (np.dstack((binary_warped, binary_warped, binary_warped))*255).astype('uint8')
-                    cv2.rectangle(s.out_img,(win_xleft_low,win_y_low),(win_xleft_high,win_y_high),
-                                  (0,255,0), 2)
-                    cv2.rectangle(s.out_img,(win_xright_low,win_y_low),(win_xright_high,win_y_high),
-                                  (0,255,0), 2)
+                    cv2.rectangle(s.out_img,(win_xleft_low,win_y_low),(win_xleft_high,win_y_high),(0,255,0), 2)
+                    cv2.rectangle(s.out_img,(win_xright_low,win_y_low),(win_xright_high,win_y_high),(0,255,0), 2)
                 # Identify the nonzero pixels in x and y within the window
                 good_left_inds = ((s.nonzeroy >= win_y_low) & (s.nonzeroy < win_y_high) &
                 (s.nonzerox >= win_xleft_low) &  (s.nonzerox < win_xleft_high)).nonzero()[0]
@@ -102,8 +100,8 @@ class Lane():
         right.ally = s.nonzeroy[s.right_lane_inds]
 
         # Remove outliers from X and Y points that are > 2 std dev from mean
-        left.allx, left.ally = Line.remove_outliers(left.allx, left.ally)
-        right.allx, right.ally = Line.remove_outliers(right.allx, right.ally)
+        left.allx, left.ally = left.remove_outliers()
+        right.allx, right.ally = right.remove_outliers()
 
         minimum_indices = 10
         # TODO: Is this still needed?

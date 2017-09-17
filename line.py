@@ -39,13 +39,13 @@ class Line:
             new_radius - self.radius_of_curvature) / self.radius_of_curvature
         return self.radius_change <= self.radius_variance
 
-    @staticmethod
-    def remove_outliers(x_list, y_list):
-        #if not x_list.any() or not y_list.any():
-        #    return x_list, y_list
-        mu_x, mu_y = np.mean(x_list), np.mean(y_list)
-        sig_x, sig_y = np.std(x_list), np.std(y_list)
-        new_x, new_y = zip(*[(x, y) for (x, y) in zip(x_list, y_list)
+    def remove_outliers(self):
+        if (self.allx.shape == (0,)) or (self.ally.shape == (0,)):
+            return self.allx, self.ally
+        print("X List shape = ", self.allx.shape, ", Y List shape = ", self.ally.shape)
+        mu_x, mu_y = np.mean(self.allx), np.mean(self.ally)
+        sig_x, sig_y = np.std(self.allx), np.std(self.ally)
+        new_x, new_y = zip(*[(x, y) for (x, y) in zip(self.allx, self.ally)
                              if abs(x - mu_x) < 2 * sig_x and abs(
                 y - mu_y) < 2 * sig_y])
         return new_x, new_y
