@@ -98,6 +98,10 @@ class Lane():
         right.allx = s.nonzerox[s.right_lane_inds]
         right.ally = s.nonzeroy[s.right_lane_inds]
 
+        # Remove outliers from X and Y points that are > 2 std dev from mean
+        left.allx, left.ally = line.remove_outliers(left.allx, left.ally)
+        right.allx, right.ally = line.remove_outliers(right.allx, right.ally)
+
         minimum_indices = 10
         if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
             # Detection Failed, use Window detection
