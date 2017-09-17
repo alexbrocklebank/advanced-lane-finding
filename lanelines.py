@@ -59,14 +59,14 @@ def process_image(image):
     # Step 2: Set up Frame pipeline
     frame = Frame(image, undist)
     #print("Height: {}, Width: {}".format(frame.height, frame.width))
-    test(frame.image, "Original Frame", undist, "Undistorted Image")
+    #test(frame.image, "Original Frame", undist, "Undistorted Image")
 
     S = frame.HLS[:,:,2]
     L = frame.LUV[:,:,0]
     B = frame.LAB[:,:,2]
     gray = frame.gray
 
-    gradx = frame.abs_sobel_thresh(L ,orient='x', sobel_kernel=ksize, thresh=(225, 255))
+    '''gradx = frame.abs_sobel_thresh(L ,orient='x', sobel_kernel=ksize, thresh=(225, 255))
     test(frame.image, "Original Frame", gradx, "LUV L Binary Sobel X")# blank
     grady = frame.abs_sobel_thresh(L ,orient='y', sobel_kernel=ksize, thresh=(225, 255))
     test(frame.image, "Original Frame", grady, "LUV L Binary Sobel Y")# blank
@@ -92,25 +92,25 @@ def process_image(image):
     test(frame.image, "Original Frame", hls_bin, "LAB B HLS Binary") # pretty good
     combined = np.zeros_like(dir_binary)
     combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin
+    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin'''
 
     gradx = frame.abs_sobel_thresh(S ,orient='x', sobel_kernel=ksize, thresh=(30, 170))
-    test(frame.image, "Original Frame", gradx, "HLS S Binary Sobel X") # pretty full image, white lines better
+    #test(frame.image, "Original Frame", gradx, "HLS S Binary Sobel X") # pretty full image, white lines better
     grady = frame.abs_sobel_thresh(S ,orient='y', sobel_kernel=ksize, thresh=(30, 170))
-    test(frame.image, "Original Frame", grady, "HLS S Binary Sobel Y") # Also pretty good
+    #test(frame.image, "Original Frame", grady, "HLS S Binary Sobel Y") # Also pretty good
     mag_binary = frame.mag_thresh(S ,sobel_kernel=ksize, mag_thresh=(30, 170))
-    test(frame.image, "Original Frame", mag_binary, "HLS S Binary Mag Thresh") # pretty good
+    #test(frame.image, "Original Frame", mag_binary, "HLS S Binary Mag Thresh") # pretty good
     dir_binary = frame.dir_threshold(S ,sobel_kernel=ksize, thresh=(0.7, 1.3))
-    test(frame.image, "Original Frame", dir_binary, "HLS S Dir Binary") # noisy as hell
+    #test(frame.image, "Original Frame", dir_binary, "HLS S Dir Binary") # noisy as hell
     hls_bin = frame.hls_thresh(image, thresh=(170, 255))
-    test(frame.image, "Original Frame", hls_bin, "HLS S HLS Binary") # Shadow affected
+    #test(frame.image, "Original Frame", hls_bin, "HLS S HLS Binary") # Shadow affected
     combined = np.zeros_like(dir_binary)
     combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good
+    #test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good
 
     # Step 3: Perspective Transform
     p_t = frame.perspective_transform(combined, src, dst)
-    test(frame.image, "Original Frame", p_t, "Perspective Transform")
+    #test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
     # Step 4: Lane Lines
     #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):
@@ -119,8 +119,8 @@ def process_image(image):
     else:
         return frame.undist
 
-out = process_image(test_img)
-test(test_img, "In", out, "Out")
-#clip = VideoFileClip(input_video)
-#out_clip = clip.fl_image(process_image)
-#out_clip.write_videofile(output_video, audio=False)
+#out = process_image(test_img)
+#test(test_img, "In", out, "Out")
+clip = VideoFileClip(input_video)
+out_clip = clip.fl_image(process_image)
+out_clip.write_videofile(output_video, audio=False)
