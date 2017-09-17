@@ -22,11 +22,9 @@ test_img = mpimg.imread("test_images/test5.jpg")
 # Sobel Kernel Size
 ksize = 3
 # 4 Source points in Lane Trapezoid
-#src = np.float32([[267,675],[608,442],[679,442],[1053,675]])
-src = np.float32([[200,720],[1100,720],[595,450],[685,450]])
+#src = np.float32([[200,720],[1100,720],[595,450],[685,450]])
 # 4 Destination points dst = np.float32([[,],[,],[,],[,]])
-#dst = np.float32([[275,719],[275,0],[1020,0],[1020,719]])
-dst = np.float32([[300,720],[980,720],[300,0],[980,0]])
+#dst = np.float32([[300,720],[980,720],[300,0],[980,0]])
 output_video = "video_output/output.mp4"
 input_video = 'project_video.mp4'
 
@@ -129,7 +127,7 @@ def process_image(image):
     #test(frame.image, "Original Frame", binary, "New Binary")
 
     # Step 3: Perspective Transform
-    p_t = frame.perspective_transform(binary, src, dst)
+    p_t = frame.perspective_transform(binary)
     p_t = frame.crop(p_t)
     test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
 
