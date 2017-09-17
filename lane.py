@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import scipy
+from scipy import signal
 from line import Line
 
 
@@ -12,21 +14,86 @@ class Lane():
         self.minpix = 15
         # Choose the number of sliding windows
         self.nwindows = 9
+        # Store problematic frames
+        self.issues = 0
 
     def compare(self, left, right):
         pass
 
+    def find_peaks(image, threshold):
+        half = image[image.shape[0]/2:,:,0]
+        data = np.sum(half, axis=0)
+        filtered = scipy.ndimage.filters.gaussian_filter1d(data, 20)
+        xs = np.arange(len(filtered))
+        peak_ind = signal.find_peaks_cwt(filtered, np.arange(20, 300))
+        peaks = np.array(peak_ind)
+        peaks = peaks[filtered[peak_ind] > threshold]
+        return peaks, filtered
+
+    def increment_window(image, center_point, width):
+        ny, nx, _ = image.shape
+        mask = np.zeros_like(image)
+
+        if (center_point <= width/2):
+            center_point = width/2
+        if (center_point >= nx-width/2):
+            center_point = nx-width/2
+
+        left = center_point - width/2
+        right = center_point + width/2
+
+        vertices = np.array([[(left, 0), (left, ny), (right, ny), (right, 0)]], dtype=np.int32)
+        ignore_mask_color = (255, 255, 255)
+        cv2.fillPoly(mask, vertices, ignore_mask_color)
+        masked = cv2.bitwise_and(mask,img)
+        histogram = np.sum(masked[:,:,0], axis=0)
+        if max(histogram > 10000):
+            center = np.argmax(hist)
+        else:
+            center = center_point
+        return masked, center
+
+    def get_lane_binary(self, image, line, window_center, width=300):
+        if line.detected:
+            window_center = line.bestx
+        else:
+            peaks, filtered = find_peaks(image, threshold=3000)
+            if len(peaks) != 2:
+                print(str(len(peaks)), " lanes detected!")
+                plt.imsave('problem_frame_{}.jpg'.format(self.issues), image)
+                self.issues += 1
+            peak_indices = np.argmin(abs(peaks - window_center))
+            peak = peaks[peak_indices]
+            window_center = peak
+            num_zones = 6
+            ny, nx, nc = image.shape
+            zones = image.reshape(num_zones, -1, nx, nc)
+            zones = zones[::-1]  # started from the bottom
+            window, center = increment_window(zones[0], center_point, width)
+            for zone in zones[1:]:
+                next_window, center = increment_window(zone, center, width)
+                window = np.vstack((next_window, window))
+        return window
+
     def find_lines(s, left, right, binary_warped, image, vis=False):
-        # Identify the x and y positions of all nonzero pixels in the image
+        '''# Identify the x and y positions of all nonzero pixels in the image
         s.nonzero = binary_warped.nonzero()
         s.nonzeroy = np.array(s.nonzero[0])
         s.nonzerox = np.array(s.nonzero[1])
         # Create empty lists to receive left and right lane pixel indices
         s.left_lane_inds = []
-        s.right_lane_inds = []
+        s.right_lane_inds = []'''
+
+        left_window_center = 340
+        left_binary = get_lane_binary(binary_warped, left, left_window_center, width=300)
+
+        right_window_center = 940
+        right_binary = get_lane_binary(binary_warped, right, right_window_center, width=300)
+
+        left.detected, left.num_buffered = 
 
         # If there is a previous frame
-        if right.detected == True and left.detected == True:
+        '''if right.detected == True and left.detected == True:
             # Assume you now have a new warped binary image
             # from the next frame of video (also called "binary_warped")
             # It's now much easier to find line pixels!
@@ -37,10 +104,12 @@ class Lane():
 
             s.right_lane_inds = ((s.nonzerox > (right.best_fit[0]*(s.nonzeroy**2) + right.best_fit[1]*s.nonzeroy +
                                  right.best_fit[2] - s.margin)) & (s.nonzerox < (right.best_fit[0]*(s.nonzeroy**2) +
-                                 right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))
+                                 right.best_fit[1]*s.nonzeroy + right.best_fit[2] + s.margin)))'''
 
         if left.detected == False or right.detected == False:
             # If either is undetected
+
+
 
             # Take a histogram of the bottom half of the image
             s.histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
