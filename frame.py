@@ -98,3 +98,20 @@ class Frame:
             # Use cv2.warpPerspective() to warp your image to a top-down view
         self.warped = cv2.warpPerspective(image, self.M, (self.width, self.height))
         return self.warped
+
+    def crop(self, image):
+        shape = image.shape
+        vertices = np.array([[(0, 0), (shape[1], 0), (shape[1], 0),
+                              (6 * shape[1] / 7, shape[0]),
+                              (shape[1] / 7, shape[0]), (0, 0)]],
+                            dtype=np.int32)
+        mask = np.zeros_like(image)
+
+        if len(shape) > 2:
+            channels = shape[2]
+            ignore_mask_color = (255,) * channels
+        else:
+            ignore_mask_color = 255
+
+        cv2.fillPoly(mask, vertices, ignore_mask_color)
+        return cv2.bitwise_and(image, mask)

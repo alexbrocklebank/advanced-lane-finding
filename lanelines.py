@@ -130,7 +130,8 @@ def process_image(image):
 
     # Step 3: Perspective Transform
     p_t = frame.perspective_transform(binary, src, dst)
-    #test(frame.image, "Original Frame", p_t, "Perspective Transform")
+    p_t = frame.crop(p_t)
+    test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
 
     # Step 4: Lane Lines
     #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):
