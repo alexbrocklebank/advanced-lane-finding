@@ -91,24 +91,30 @@ class Frame:
         binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
         return binary_output
 
-    def perspective_transform(self, image, src, dst):
-            # Use cv2.getPerspectiveTransform() to get M, the transform matrix
+    def perspective_transform(self, image):
+        corners = np.float32([[190, 720], [589, 457], [698, 457], [1145, 720]])
+        new_top_left = np.array([corners[0, 0], 0])
+        new_top_right = np.array([corners[3, 0], 0])
+        offset = [150, 0]
+
+        src = np.float32([corners[0], corners[1], corners[2], corners[3]])
+        dst = np.float32(
+            [corners[0] + offset, new_top_left + offset, new_top_right - offset,
+             corners[3] - offset])
         self.M = cv2.getPerspectiveTransform(src, dst)
         self.Minv = cv2.getPerspectiveTransform(dst, src)
-            # Use cv2.warpPerspective() to warp your image to a top-down view
-        self.warped = cv2.warpPerspective(image, self.M, (self.width, self.height))
+        self.warped = cv2.warpPerspective(image, self.M, (self.width, self.height), flags=cv2.INTER_LINEAR)
         return self.warped
 
     def crop(self, image):
-        shape = image.shape
-        vertices = np.array([[(0, 0), (shape[1], 0), (shape[1], 0),
-                              (6 * shape[1] / 7, shape[0]),
-                              (shape[1] / 7, shape[0]), (0, 0)]],
+        vertices = np.array([[(0, 0), (self.width, 0), (self.width, 0),
+                              (6 * self.width / 7, self.height),
+                              (self.width / 7, shape.height), (0, 0)]],
                             dtype=np.int32)
         mask = np.zeros_like(image)
 
-        if len(shape) > 2:
-            channels = shape[2]
+        if len(image.shape) > 2:
+            channels = image.shape[2]
             ignore_mask_color = (255,) * channels
         else:
             ignore_mask_color = 255
