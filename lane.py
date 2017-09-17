@@ -9,7 +9,7 @@ class Lane():
         # Set the width of the windows +/- margin
         self.margin = 100
         # Set minimum number of pixels found to recenter window
-        self.minpix = 40
+        self.minpix = 15
         # Choose the number of sliding windows
         self.nwindows = 9
 

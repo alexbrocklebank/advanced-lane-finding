@@ -109,7 +109,7 @@ class Frame:
     def crop(self, image):
         vertices = np.array([[(0, 0), (self.width, 0), (self.width, 0),
                               (6 * self.width / 7, self.height),
-                              (self.width / 7, shape.height), (0, 0)]],
+                              (self.width / 7, self.height), (0, 0)]],
                             dtype=np.int32)
         mask = np.zeros_like(image)
 
