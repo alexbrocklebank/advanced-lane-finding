@@ -125,7 +125,7 @@ def process_image(image):
     test(frame.image, "Original Frame", combined, "Combined")
     binary = np.zeros_like(sobel_x_binary)
     binary[((l_binary == 1) & (s_binary == 1) | (sobel_x_binary == 1))] = 1
-    binary = np.dstack((binary, binary, binary)).astype('uint8')
+    binary = 255*np.dstack((binary, binary, binary)).astype('uint8')
     test(frame.image, "Original Frame", binary, "New Binary")
 
     # Step 3: Perspective Transform
