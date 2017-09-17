@@ -62,7 +62,8 @@ def process_image(image):
     #test(frame.image, "Original Frame", undist, "Undistorted Image")
 
     S = frame.HLS[:,:,2]
-    L = frame.LUV[:,:,0]
+    hLs = frame.HLS[:,:,1]
+    Luv = frame.LUV[:,:,0]
     B = frame.LAB[:,:,2]
     gray = frame.gray
 
@@ -92,7 +93,7 @@ def process_image(image):
     test(frame.image, "Original Frame", hls_bin, "LAB B HLS Binary") # pretty good
     combined = np.zeros_like(dir_binary)
     combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin'''
+    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin
 
     gradx = frame.abs_sobel_thresh(S ,orient='x', sobel_kernel=ksize, thresh=(30, 170))
     #test(frame.image, "Original Frame", gradx, "HLS S Binary Sobel X") # pretty full image, white lines better
@@ -106,10 +107,24 @@ def process_image(image):
     #test(frame.image, "Original Frame", hls_bin, "HLS S HLS Binary") # Shadow affected
     combined = np.zeros_like(dir_binary)
     combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    #test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good
+    #test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good'''
+
+    sobel_x_binary = frame.abs_sobel_thresh(hLs, orient='x', sobel_kernel=ksize,
+                                   thresh=(20, 255))
+
+    s_binary = np.zeros_like(S)
+    s_binary[(S >= 120) & (S <= 255)] = 1
+
+    l_binary = np.zeros_like(hLs)
+    l_binary[(hLs >= 40) & (hLs <= 255)] = 1
+
+    combined = 255*np.dstack((l_binary, sobel_x_binary, s_binary)).astype('uint8')
+    binary = np.zeros_like(sobel_x_binary)
+    binary[((l_binary == 1) & (s_binary == 1) | (sobel_x_binary == 1))] = 1
+    binary = np.dstack((binary, binary, binary)).astype('uint8')
 
     # Step 3: Perspective Transform
-    p_t = frame.perspective_transform(combined, src, dst)
+    p_t = frame.perspective_transform(binary, src, dst)
     #test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
     # Step 4: Lane Lines

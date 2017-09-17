@@ -13,6 +13,9 @@ class Lane():
         # Choose the number of sliding windows
         self.nwindows = 9
 
+    def compare(self, left, right):
+        pass
+
     def find_lines(s, left, right, binary_warped, image, vis=False):
         # Identify the x and y positions of all nonzero pixels in the image
         s.nonzero = binary_warped.nonzero()
