@@ -104,6 +104,7 @@ class Lane():
             return True
 
         # Fit a second order polynomial to each
+        # TODO: Do Not overwrite best_fit until it is determined better than previous
         left.best_fit = np.polyfit(left.ally, left.allx, 2)
         #print("Left Best Fit: {}".format(left.best_fit))
         right.best_fit = np.polyfit(right.ally, right.allx, 2)
@@ -194,13 +195,17 @@ class Lane():
         # Define y-value where we want radius of curvature
         # Choose the maximum y-value, corresponding to the bottom of the image
         y_eval = np.max(s.ploty)
-        left.radius_of_curvature = ((1 + (2*s.left_fit[0]*y_eval + s.left_fit[1])**2)**1.5) / np.absolute(2*s.left_fit[0])
-        right.radius_of_curvature = ((1 + (2*s.right_fit[0]*y_eval + s.right_fit[1])**2)**1.5) / np.absolute(2*s.right_fit[0])
+        left_radius = ((1 + (2*s.left_fit[0]*y_eval + s.left_fit[1])**2)**1.5) / np.absolute(2*s.left_fit[0])
+        if left.curve_check(left_radius):
+            left.radius_of_curvature = left_radius
+        right_radius = ((1 + (2*s.right_fit[0]*y_eval + s.right_fit[1])**2)**1.5) / np.absolute(2*s.right_fit[0])
+        if right.curve_check(right_radius):
+            right.radius_of_curvature = right_radius
         #print(left.radius_of_curvature, right.radius_of_curvature)
         # Example values: 1926.74 1908.48
 
         # TODO: Check Radius variance between L and R
-        #
+
 
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = 30/720 # meters per pixel in y dimension

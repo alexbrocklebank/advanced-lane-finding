@@ -26,3 +26,14 @@ class Line():
         self.allx = None
         #y values for detected line pixels
         self.ally = None
+        #Allowed change in radius from frame to frame (100%/X%)
+        self.radius_variance = 0.5  # 200%
+        # Change in radius between frames
+        self.radius_change = 0
+
+    def curve_check(self, new_radius):
+        if self.radius_of_curvature is None:
+            return True
+
+        self.radius_change = abs(new_radius - self.radius_of_curvature)/self.radius_of_curvature
+        return self.radius_change <= self.radius_variance
