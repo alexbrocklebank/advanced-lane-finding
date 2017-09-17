@@ -41,8 +41,8 @@ class Line:
 
     @staticmethod
     def remove_outliers(x_list, y_list):
-        if not x_list or not y_list:
-            return x_list, y_list
+        #if not x_list.any() or not y_list.any():
+        #    return x_list, y_list
         mu_x, mu_y = np.mean(x_list), np.mean(y_list)
         sig_x, sig_y = np.std(x_list), np.std(y_list)
         new_x, new_y = zip(*[(x, y) for (x, y) in zip(x_list, y_list)

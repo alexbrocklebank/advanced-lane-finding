@@ -111,21 +111,26 @@ def process_image(image):
 
     sobel_x_binary = frame.abs_sobel_thresh(hLs, orient='x', sobel_kernel=ksize,
                                    thresh=(20, 255))
+    test(frame.image, "Original Frame", sobel_x_binary, "Sobel X Binary")
 
     s_binary = np.zeros_like(S)
     s_binary[(S >= 120) & (S <= 255)] = 1
+    test(frame.image, "Original Frame", s_binary, "S Binary")
 
     l_binary = np.zeros_like(hLs)
     l_binary[(hLs >= 40) & (hLs <= 255)] = 1
+    test(frame.image, "Original Frame", l_binary, "L Binary")
 
     combined = 255*np.dstack((l_binary, sobel_x_binary, s_binary)).astype('uint8')
+    test(frame.image, "Original Frame", combined, "Combined")
     binary = np.zeros_like(sobel_x_binary)
     binary[((l_binary == 1) & (s_binary == 1) | (sobel_x_binary == 1))] = 1
     binary = np.dstack((binary, binary, binary)).astype('uint8')
+    test(frame.image, "Original Frame", binary, "New Binary")
 
     # Step 3: Perspective Transform
     p_t = frame.perspective_transform(binary, src, dst)
-    #test(frame.image, "Original Frame", p_t, "Perspective Transform")
+    test(frame.image, "Original Frame", p_t, "Perspective Transform")
 
     # Step 4: Lane Lines
     #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):

@@ -102,13 +102,14 @@ class Lane():
         right.ally = s.nonzeroy[s.right_lane_inds]
 
         # Remove outliers from X and Y points that are > 2 std dev from mean
-        left.allx, left.ally = line.remove_outliers(left.allx, left.ally)
-        right.allx, right.ally = line.remove_outliers(right.allx, right.ally)
+        left.allx, left.ally = Line.remove_outliers(left.allx, left.ally)
+        right.allx, right.ally = Line.remove_outliers(right.allx, right.ally)
 
         minimum_indices = 10
-        if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
+        # TODO: Is this still needed?
+        #if left.ally.shape[0] < minimum_indices or right.ally.shape[0] < minimum_indices:
             # Detection Failed, use Window detection
-            return True
+            #return True
 
         # Fit a second order polynomial to each
         # TODO: Do Not overwrite best_fit until it is determined better than previous
