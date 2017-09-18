@@ -22,7 +22,7 @@ with open('camera_dist_pickle.p', mode='rb') as f:
     dist = dist_pickle["dist"]
 
 
-'''def region_of_interest(img):
+def region_of_interest(img):
     """
     Applies an image mask.
 
@@ -48,15 +48,15 @@ with open('camera_dist_pickle.p', mode='rb') as f:
 
     # returning the image only where mask pixels are nonzero
     masked_image = cv2.bitwise_and(img, mask)
-    return masked_image'''
+    return masked_image
 
 
-'''def undistort(img):
+def undistort(img):
 #    result = cv2.undistort(img, mtx, dist, None, mtx)
-#    return result'''
+#    return result
 
 
-'''def binarize(img, s_thresh=(120, 255), sx_thresh=(20, 255), l_thresh=(40, 255)):
+def binarize(img, s_thresh=(120, 255), sx_thresh=(20, 255), l_thresh=(40, 255)):
 #    img = np.copy(img)
 
     # Convert to HLS color space and separate the V channel
@@ -89,10 +89,10 @@ with open('camera_dist_pickle.p', mode='rb') as f:
     binary = np.zeros_like(sxbinary)
     binary[((l_binary == 1) & (s_binary == 1) | (sxbinary == 1))] = 1
     binary = 255 * np.dstack((binary, binary, binary)).astype('uint8')
-    return binary, channels'''
+    return binary, channels
 
 
-'''def warp(img, tobird=True):
+def warp(img, tobird=True):
     corners = np.float32([[190, 720], [589, 457], [698, 457], [1145, 720]])
     new_top_left = np.array([corners[0, 0], 0])
     new_top_right = np.array([corners[3, 0], 0])
@@ -108,7 +108,7 @@ with open('camera_dist_pickle.p', mode='rb') as f:
     else:
         M = cv2.getPerspectiveTransform(dst, src)
     warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
-    return warped, M'''
+    return warped, M
 
 
 def find_peaks(img, thresh):
@@ -208,7 +208,7 @@ class Line:
         # difference in fit coefficients between last and new fits
         self.diffs = np.array([0, 0, 0], dtype='float')
 
-    '''def set_current_fit_xvals(self):
+    def set_current_fit_xvals(self):
         yvals = self.fit_yvals
         self.current_fit_xvals = self.current_fit_coeffs[0] * yvals ** 2 + \
                                  self.current_fit_coeffs[1] * yvals + \
@@ -313,7 +313,7 @@ class Line:
                 self.set_avgx()
                 self.set_avgcoeffs()
 
-        return self.detected, self.n_buffered'''
+        return self.detected, self.n_buffered
 
 
 def get_binary_lane_image(img, line, window_center, width=300):
@@ -379,24 +379,24 @@ def process_image(img):
     #detected_l, n_buffered_left = left.update(left_binary)
     #detected_r, n_buffered_right = right.update(right_binary)
 
-    left_fitx = left.avgx
-    right_fitx = right.avgx
-    yvals = left.fit_yvals
-    lane_width = 3.7
-    off_center = -100 * round(
-        0.5 * (right.line_base_pos - lane_width / 2) + 0.5 * (
-        abs(left.line_base_pos) - lane_width / 2), 2)
+    ###left_fitx = left.avgx
+    ####right_fitx = right.avgx
+    ###yvals = left.fit_yvals
+    #lane_width = 3.7
+    #off_center = -100 * round(
+    #    0.5 * (right.line_base_pos - lane_width / 2) + 0.5 * (
+    #    abs(left.line_base_pos) - lane_width / 2), 2)
 
-    result = project_lane_lines(img, left_fitx, right_fitx, yvals)
+    #result = project_lane_lines(img, left_fitx, right_fitx, yvals)
 
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    str1 = str('distance from center: ' + str(off_center) + 'cm')
-    cv2.putText(result, str1, (430, 630), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    if left.radius_of_curvature and right.radius_of_curvature:
-        curvature = 0.5 * (round(right.radius_of_curvature / 1000, 1) + round(
-            left.radius_of_curvature / 1000, 1))
-        str2 = str('radius of curvature: ' + str(curvature) + 'km')
-        cv2.putText(result, str2, (430, 670), font, 1, (0, 0, 255), 2,
-                    cv2.LINE_AA)
+    #font = cv2.FONT_HERSHEY_SIMPLEX
+    #str1 = str('distance from center: ' + str(off_center) + 'cm')
+    #cv2.putText(result, str1, (430, 630), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+    #if left.radius_of_curvature and right.radius_of_curvature:
+    #    curvature = 0.5 * (round(right.radius_of_curvature / 1000, 1) + round(
+    #        left.radius_of_curvature / 1000, 1))
+    #    str2 = str('radius of curvature: ' + str(curvature) + 'km')
+    #    cv2.putText(result, str2, (430, 670), font, 1, (0, 0, 255), 2,
+    #                cv2.LINE_AA)
 
-    return result
+    #return result

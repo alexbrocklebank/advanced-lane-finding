@@ -59,56 +59,15 @@ def process_image(image):
     #print("Height: {}, Width: {}".format(frame.height, frame.width))
     #test(frame.image, "Original Frame", undist, "Undistorted Image")
 
-    S = frame.HLS[:,:,2]
-    hLs = frame.HLS[:,:,1]
-    Luv = frame.LUV[:,:,0]
-    B = frame.LAB[:,:,2]
+    S = frame.HLS[:, :, 2]
+    hLs = frame.HLS[:, :, 1]
+    Luv = frame.LUV[:, :, 0]
+    B = frame.LAB[:, :, 2]
     gray = frame.gray
 
-    '''gradx = frame.abs_sobel_thresh(L ,orient='x', sobel_kernel=ksize, thresh=(225, 255))
-    test(frame.image, "Original Frame", gradx, "LUV L Binary Sobel X")# blank
-    grady = frame.abs_sobel_thresh(L ,orient='y', sobel_kernel=ksize, thresh=(225, 255))
-    test(frame.image, "Original Frame", grady, "LUV L Binary Sobel Y")# blank
-    mag_binary = frame.mag_thresh(L ,sobel_kernel=ksize, mag_thresh=(225, 255))
-    test(frame.image, "Original Frame", mag_binary, "LUV L Binary Mag Thresh") # blank
-    dir_binary = frame.dir_threshold(L ,sobel_kernel=ksize, thresh=(0.7, 1.3))
-    test(frame.image, "Original Frame", dir_binary, "LUV L Dir Binary") # horrible noise
-    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
-    test(frame.image, "Original Frame", hls_bin, "LUV L HLS Binary") #Dark shadows amplified, lines in shadow hidden
-    combined = np.zeros_like(dir_binary)
-    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    test(frame.image, "Original Frame", combined, "LUV Combined L Binary") # same as hls_bin
-
-    gradx = frame.abs_sobel_thresh(B ,orient='x', sobel_kernel=ksize, thresh=(155, 200))
-    test(frame.image, "Original Frame", gradx, "LAB B Binary Sobel X") # blank
-    grady = frame.abs_sobel_thresh(B ,orient='y', sobel_kernel=ksize, thresh=(155, 200))
-    test(frame.image, "Original Frame", grady, "LAB B Binary Sobel Y") # blank
-    mag_binary = frame.mag_thresh(B ,sobel_kernel=ksize, mag_thresh=(155, 200))
-    test(frame.image, "Original Frame", mag_binary, "LAB B Binary Mag Thresh") # almost blank
-    dir_binary = frame.dir_threshold(B ,sobel_kernel=ksize, thresh=(0.7, 1.3))
-    test(frame.image, "Original Frame", dir_binary, "LAB B Dir Binary") # noisy, yellow line on concrete shows
-    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
-    test(frame.image, "Original Frame", hls_bin, "LAB B HLS Binary") # pretty good
-    combined = np.zeros_like(dir_binary)
-    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    test(frame.image, "Original Frame", combined, "LAB Combined B Binary") # same as hls_bin
-
-    gradx = frame.abs_sobel_thresh(S ,orient='x', sobel_kernel=ksize, thresh=(30, 170))
-    #test(frame.image, "Original Frame", gradx, "HLS S Binary Sobel X") # pretty full image, white lines better
-    grady = frame.abs_sobel_thresh(S ,orient='y', sobel_kernel=ksize, thresh=(30, 170))
-    #test(frame.image, "Original Frame", grady, "HLS S Binary Sobel Y") # Also pretty good
-    mag_binary = frame.mag_thresh(S ,sobel_kernel=ksize, mag_thresh=(30, 170))
-    #test(frame.image, "Original Frame", mag_binary, "HLS S Binary Mag Thresh") # pretty good
-    dir_binary = frame.dir_threshold(S ,sobel_kernel=ksize, thresh=(0.7, 1.3))
-    #test(frame.image, "Original Frame", dir_binary, "HLS S Dir Binary") # noisy as hell
-    hls_bin = frame.hls_thresh(image, thresh=(170, 255))
-    #test(frame.image, "Original Frame", hls_bin, "HLS S HLS Binary") # Shadow affected
-    combined = np.zeros_like(dir_binary)
-    combined[(gradx == 1 | ((mag_binary == 1) & (dir_binary == 1))) | hls_bin == 1] = 1
-    #test(frame.image, "Original Frame", combined, "HLS Combined S Binary") # Good'''
-
-    sobel_x_binary = frame.abs_sobel_thresh(hLs, orient='x', sobel_kernel=ksize,
-                                   thresh=(20, 255))
+    sobel_x_binary = frame.abs_sobel_thresh(hLs, orient='x',
+                                            sobel_kernel=ksize,
+                                            thresh=(20, 255))
     #test(frame.image, "Original Frame", sobel_x_binary, "Sobel X Binary")
 
     s_binary = np.zeros_like(S)
@@ -119,11 +78,12 @@ def process_image(image):
     l_binary[(hLs >= 40) & (hLs <= 255)] = 1
     #test(frame.image, "Original Frame", l_binary, "L Binary")
 
-    combined = 255*np.dstack((l_binary, sobel_x_binary, s_binary)).astype('uint8')
+    combined = 255*np.dstack((l_binary, sobel_x_binary,
+                              s_binary)).astype('uint8')
     #test(frame.image, "Original Frame", combined, "Combined")
     binary = np.zeros_like(sobel_x_binary)
     binary[((l_binary == 1) & (s_binary == 1) | (sobel_x_binary == 1))] = 1
-    binary = 255*np.dstack((binary, binary, binary)).astype('uint8')
+    binary = 255 * np.dstack((binary, binary, binary)).astype('uint8')
     #test(frame.image, "Original Frame", binary, "New Binary")
 
     # Step 3: Perspective Transform

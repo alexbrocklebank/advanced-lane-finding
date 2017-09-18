@@ -15,7 +15,7 @@ class Line:
         # average x values of the fitted line over the last n iterations
         self.bestx = None
         # always the same y-range as image
-        #self.fit_yvals = np.linspace(0, 100, num=101) * 7.2
+        # self.fit_yvals = np.linspace(0, 100, num=101) * 7.2
         self.fit_yvals = np.linspace(0, 719, num=720)
         #
         self.average_x = None
@@ -71,7 +71,7 @@ class Line:
             average = 0
             for fit in fits:
                 average += np.array(fit)
-            average = average / len(fits)
+            average /= len(fits)
             self.average_x = average
 
     def check_line(self):
@@ -90,7 +90,7 @@ class Line:
             average = 0
             for fit in self.recent_xfitted:
                 average += np.array(fit)
-            average = average / len(self.recent_xfitted)
+            average /= len(self.recent_xfitted)
             self.average_x = average
 
         # Determine and Set the average coefficients
@@ -102,17 +102,20 @@ class Line:
             self.best_fit = average
 
     def update(self, lane):
-        self.ally, self.allx = (lane[:,:,0] > 254).nonzero()
+        self.ally, self.allx = (lane[:, :, 0] > 254).nonzero()
         self.current_fit = np.polyfit(self.ally, self.allx, 2)
 
         yvals = self.fit_yvals
-        self.current_fit_xvals = self.current_fit[0]*yvals**2 + self.current_fit[1]*yvals + self.current_fit[2]
+        self.current_fit_xvals = self.current_fit[0] * yvals ** 2 + \
+                                 self.current_fit[1] * yvals + \
+                                 self.current_fit[2]
 
-        # Define y-value where we want radius of curvature (choose bottom of the image)
+        # Define y-value where we want radius of curvature (choose image bottom)
         y_eval = max(self.fit_yvals)
         if self.best_fit is not None:
-            self.radius_of_curvature = ((1 + (2*self.best_fit[0]*y_eval + self.best_fit[1])**2)**1.5) \
-                             /np.absolute(2*self.best_fit[0])
+            self.radius_of_curvature = ((1 + (2 * self.best_fit[0] * y_eval +
+                                              self.best_fit[1]) ** 2) ** 1.5) \
+                                       / np.absolute(2 * self.best_fit[0])
 
         y_eval = max(self.fit_yvals)
         self.line_base_pos = self.current_fit[0]*y_eval**2 \
@@ -120,19 +123,20 @@ class Line:
                         + self.current_fit[2]
         base_pos = 640
 
-        self.vehicle_center = (self.line_pos - base_pos)*3.7/700.0 # 3.7 meters is about 700 pixels in the x direction
+        # 3.7 meters is about 700 pixels in the x direction
+        self.vehicle_center = (self.line_pos - base_pos)*3.7/700.0
 
         if self.num_buffered > 0:
             self.diffs = self.current_fit - self.best_fit
         else:
-            self.diffs = np.array([0,0,0], dtype='float')
+            self.diffs = np.array([0, 0, 0], dtype='float')
 
         if check_lane():
             self.detected = True
 
             self.recent_xfitted.appendleft(self.current_fit_xvals)
             self.recent_fitted.appendleft(self.current_fit)
-            assert len(self.recent_xfitted)==len(self.recent_fitted)
+            assert len(self.recent_xfitted) == len(self.recent_fitted)
             self.num_buffered = len(self.recent_xfitted)
 
             self.set_averages()
