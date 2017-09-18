@@ -114,7 +114,7 @@ class Line:
                                  self.current_fit[2]
 
         # Define y-value where we want radius of curvature (choose image bottom)
-        y_eval = max(self.fit_yvals)
+        y_eval = max(self.fit_yvals) * (30 / 720)
         if self.best_fit is not None:
             self.radius_of_curvature = ((1 + (2 * self.best_fit[0] * y_eval +
                                               self.best_fit[1]) ** 2) ** 1.5) \
