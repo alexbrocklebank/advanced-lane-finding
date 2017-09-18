@@ -123,6 +123,4 @@ class Lane:
             result = cv2.putText(result, label_str, (30, 40), 0, 1, (0, 0, 0), 2,
                              cv2.LINE_AA)
 
-        #plt.imshow(result)
-        #plt.show()
         return result

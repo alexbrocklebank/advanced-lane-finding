@@ -96,7 +96,8 @@ cam.calibrate(calibrate_dir, chessboard)
 
 # Single Image Test Code
 # out = process_image(test_img)
-# test(test_img, "In", out, "Out")
+# plt.imshow(out)
+# plt.show()
 
 # Video Clip Pipeline
 clip = VideoFileClip(input_video)
