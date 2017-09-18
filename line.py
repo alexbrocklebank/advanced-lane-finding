@@ -10,18 +10,27 @@ class Line:
         self.detected = False
         # x values of the last n fits of the line
         self.recent_xfitted = []
+        # coefficients of the last n fits of the line
+        self.recent_fitted
         # average x values of the fitted line over the last n iterations
         self.bestx = None
+        # always the same y-range as image
+        #self.fit_yvals = np.linspace(0, 100, num=101) * 7.2
+        self.fit_yvals = np.linspace(0, 719, num=720)
         #
         self.average_x = None
         # polynomial coefficients averaged over the last n iterations
         self.best_fit = None
         # polynomial coefficients for the most recent fit
         self.current_fit = [np.array([False])]
+        #
+        self.current_fit_xvals = None
         # radius of curvature of the line in some units
         self.radius_of_curvature = None
-        # distance in meters of vehicle center from the line
+        # line position in pixels at bottom of image
         self.line_base_pos = None
+        # Vehicle from center of lane
+        self.vehicle_center = None
         # difference in fit coefficients between last and new fits
         self.diffs = np.array([0, 0, 0], dtype='float')
         # x values for detected line pixels
@@ -67,88 +76,77 @@ class Line:
 
     def check_line(self):
         maximum_distance = 2.8
-        if (abs(self.line_base_pos) > maximum_distance):
+        if abs(self.vehicle_center) > maximum_distance:
             return False
         if self.num_buffered > 0:
-            delta = self.diffs / self.average_fit_coefficients
+            delta = self.diffs / self.best_fit
             if not (abs(delta) < np.array([0.7, 0.5, 0.15])).all():
                 return False
         return True
 
-    def update(self):
-        def set_allxy(self,lane_candidate):
-        self.ally,self.allx = (lane_candidate[:,:,0]>254).nonzero()
+    def set_averages(self):
+        # Determine and Set the average of recent_xfitted
+        if len(self.recent_xfitted) > 0:
+            average = 0
+            for fit in self.recent_xfitted:
+                average += np.array(fit)
+            average = average / len(self.recent_xfitted)
+            self.average_x = average
 
-        def set_current_fit_coeffs(self):
-        self.current_fit_coeffs = np.polyfit(self.ally, self.allx, 2)
+        # Determine and Set the average coefficients
+        if len(self.recent_fitted) > 0:
+            average = 0
+            for coeff in self.recent_fitted:
+                average += np.array(coeff)
+            average /= len(self.recent_fitted)
+            self.best_fit = average
 
-        def set_current_fit_xvals(self):
+    def update(self, lane):
+        self.ally, self.allx = (lane[:,:,0] > 254).nonzero()
+        self.current_fit = np.polyfit(self.ally, self.allx, 2)
+
         yvals = self.fit_yvals
-        self.current_fit_xvals = self.current_fit_coeffs[0]*yvals**2 +
-                self.current_fit_coeffs[1]*yvals + self.current_fit_coeffs[2]
+        self.current_fit_xvals = self.current_fit[0]*yvals**2 + self.current_fit[1]*yvals + self.current_fit[2]
 
-        def set_radius_of_curvature(self):
         # Define y-value where we want radius of curvature (choose bottom of the image)
         y_eval = max(self.fit_yvals)
-        if self.avg_fit_coeffs is not None:
-            self.radius_of_curvature = ((1 + (2*self.avg_fit_coeffs[0]*y_eval + self.avg_fit_coeffs[1])**2)**1.5) \
-                             /np.absolute(2*self.avg_fit_coeffs[0])
+        if self.best_fit is not None:
+            self.radius_of_curvature = ((1 + (2*self.best_fit[0]*y_eval + self.best_fit[1])**2)**1.5) \
+                             /np.absolute(2*self.best_fit[0])
 
-        def set_line_base_pos(self):
         y_eval = max(self.fit_yvals)
-        self.line_pos = self.current_fit_coeffs[0]*y_eval**2 \
-                        +self.current_fit_coeffs[1]*y_eval \
-                        + self.current_fit_coeffs[2]
-        basepos = 640
+        self.line_base_pos = self.current_fit[0]*y_eval**2 \
+                        + self.current_fit[1]*y_eval \
+                        + self.current_fit[2]
+        base_pos = 640
 
-        self.line_base_pos = (self.line_pos - basepos)*3.7/600.0 # 3.7 meters is about 600 pixels in the x direction
+        self.vehicle_center = (self.line_pos - base_pos)*3.7/700.0 # 3.7 meters is about 700 pixels in the x direction
 
-        def get_diffs(self):
-        if self.n_buffered>0:
-            self.diffs = self.current_fit_coeffs - self.avg_fit_coeffs
+        if self.num_buffered > 0:
+            self.diffs = self.current_fit - self.best_fit
         else:
             self.diffs = np.array([0,0,0], dtype='float')
 
         if check_lane():
             self.detected = True
 
-            def add_data(self):
             self.recent_xfitted.appendleft(self.current_fit_xvals)
-            self.recent_fit_coeffs.appendleft(self.current_fit_coeffs)
-            assert len(self.recent_xfitted)==len(self.recent_fit_coeffs)
-            self.n_buffered = len(self.recent_xfitted)
+            self.recent_fitted.appendleft(self.current_fit)
+            assert len(self.recent_xfitted)==len(self.recent_fitted)
+            self.num_buffered = len(self.recent_xfitted)
 
-            set_average_x()
-
-            def set_avgcoeffs(self):
-            coeffs = self.recent_fit_coeffs
-            if len(coeffs)>0:
-                avg=0
-                for coeff in coeffs:
-                    avg +=np.array(coeff)
-                avg = avg / len(coeffs)
-                self.avg_fit_coeffs = avg
+            self.set_averages()
 
         else:
             self.detected = False
 
-            def pop_data(self):
-            if self.n_buffered>0:
+            if self.num_buffered > 0:
                 self.recent_xfitted.pop()
-                self.recent_fit_coeffs.pop()
-                assert len(self.recent_xfitted)==len(self.recent_fit_coeffs)
-                self.n_buffered = len(self.recent_xfitted)
+                self.recent_fit.pop()
+                assert len(self.recent_xfitted) == len(self.recent_fitted)
+                self.num_buffered = len(self.recent_xfitted)
 
             if self.num_buffered > 0:
-                set_average_x()
-
-                def set_avgcoeffs(self):
-                coeffs = self.recent_fit_coeffs
-                if len(coeffs)>0:
-                    avg=0
-                    for coeff in coeffs:
-                        avg +=np.array(coeff)
-                    avg = avg / len(coeffs)
-                    self.avg_fit_coeffs = avg
+                self.set_averages()
 
         return self.detected, self.num_buffered

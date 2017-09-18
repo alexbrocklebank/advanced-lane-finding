@@ -6,7 +6,7 @@ from scipy import signal
 from line import Line
 
 
-class Lane():
+class Lane:
     def __init__(self):
         # Set the width of the windows +/- margin
         self.margin = 100
@@ -20,7 +20,7 @@ class Lane():
     def compare(self, left, right):
         pass
 
-    def find_peaks(image, threshold):
+    def find_peaks(self, image, threshold):
         half = image[image.shape[0]/2:,:,0]
         data = np.sum(half, axis=0)
         filtered = scipy.ndimage.filters.gaussian_filter1d(data, 20)
@@ -30,7 +30,7 @@ class Lane():
         peaks = peaks[filtered[peak_ind] > threshold]
         return peaks, filtered
 
-    def increment_window(image, center_point, width):
+    def increment_window(self, image, center_point, width):
         ny, nx, _ = image.shape
         mask = np.zeros_like(image)
 
@@ -90,7 +90,8 @@ class Lane():
         right_window_center = 940
         right_binary = get_lane_binary(binary_warped, right, right_window_center, width=300)
 
-        left.detected, left.num_buffered = 
+        left.detected, left.num_buffered = left.update(left_binary)
+        right.detected, right.num_buffered = right.update(right_binary)
 
         # If there is a previous frame
         '''if right.detected == True and left.detected == True:
@@ -234,7 +235,7 @@ class Lane():
 
         # Generate some fake data to represent lane-line pixels
         # TODO: Remove this fake data
-        s.ploty = np.linspace(0, 719, num=720)  # to cover same y-range as image
+        #s.ploty = np.linspace(0, 719, num=720)  # to cover same y-range as image
 
         #print("Length of Left X: ", left.allx.shape)
         #print("Length of Right X: ", right.allx.shape)
