@@ -37,7 +37,7 @@ You're reading it!
 
 #### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
-The code for this step is contained in lines 11 - 36 in camera.py, using the calibrate() method in the Camera class.  
+The code for this step is contained in lines 15 - 38 in `camera.py`, using the `calibrate()` method in the `Camera` class.  
 
 I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
@@ -53,42 +53,50 @@ To demonstrate this step, I applied this distortion correction to the first fram
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 76 through 83 in `lanelines.py`).  These lines of code reference helper functions in frame.py, where I created a Frame class to manipulate a given frame.  Here's an example of my output for this step.  
+I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 59 through 81 in `lanelines.py`), using the HLS color map.  These lines of code reference helper functions in frame.py, where I created a Frame class to manipulate a given frame.  Here's an example of my output for this step.  
 
 ![Original vs. Thresholded Binary Image][image3]
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `perspective_transform()`, which appears in lines 94 through 100 in the file `frame.py`.  This function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points inside the `lanelines.py` file like this:
+The code for my perspective transform includes a function called `perspective_transform()`, which appears in lines 90 through 103 in the file `frame.py`.  This function takes as an input just an image (`image`).  The source (`src`) and destination (`dst`) points are determined within this function, derived from the corners variable with hardcoded points as such:
 
 ```python
-src = np.float32([[200,720],[1100,720],[595,450],[685,450]])
-dst = np.float32([[300,720],[980,720],[300,0],[980,0]])
+    corners = np.float32([[190, 720], [589, 457], [698, 457], [1145, 720]])
+    new_top_left = np.array([corners[0, 0], 0])
+    new_top_right = np.array([corners[3, 0], 0])
+    offset = [150, 0]
+    src = np.float32([corners[0], corners[1], corners[2], corners[3]])
+    dst = np.float32(
+        [corners[0] + offset, new_top_left + offset, new_top_right - offset,
+         corners[3] - offset])
 ```
 
 This resulted in the following source and destination points:
 
 | Source        | Destination   |
 |:-------------:|:-------------:|
-| 200, 720      | 300, 720        |
-| 1100, 720      | 980, 720      |
-| 595, 450     | 300, 0      |
-| 685, 450      | 980, 0        |
+| 190, 720      | 340, 720        |
+| 589, 457      | 980, 720      |
+| 698, 457     | 300, 0      |
+| 1145, 720      | 980, 0        |
 
 
 ![Perspective Transform][image2]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Within `lane.py` in lines 122 - 124 I fit the lane line pixels to polynomials using numpy's polyfit() function.  Below is the resulting image of finding the lane-line pixels:
+Within `line.py` on line 109 I fit the lane line pixels to a polynomial using numpy's polyfit() function.  Below is the resulting image of finding the lane-line pixels:
 
 ![Lane-Line Points][image4]
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
+Identifying and calculating the curvature radius was calculated on line 119 of `line.py`, and the vehicle location within the lane was performed on line 130.  These were both stored within the Line objects for the left and right lines independently, to be compared in the next step.
+
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented steps 5 and 6 at the same time. I did this in lines 263 through 269 in my code in `lane.py` to notate in the unwarped output, but it also uses a function vehicle_offset() on lines 232 - 240 for the vehicle positioning. in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+The lane lines are plotted and drawn in `lane.py` with the Lane.draw() function on lines 89 to 128.  With the left and right lines storing the vehicle position and curvature of their own, I can get the average curve as well as the vehicle offset with respect to the required lane width in the US. Here is an example of my result on a test image:
 
 ![Annotated and Unwarped Output][image6]
 
@@ -106,8 +114,8 @@ Here's a [link to my video result](./video_output/output.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Finding lane lines using computer vision and non-linear functions is much more robust than the initial lane finding project.  I spent a large portion of the project within the line detection logic after the image has been fed through the binary filter pipeline.  I had a great deal averaging out the lines between frames, which wound up being helped a great deal by modifying the parameters and colors used within the pipeline instead.  
+Finding lane lines using computer vision and non-linear functions is much more robust than the initial lane finding project.  I spent a large portion of the project within the line detection logic after the image has been fed through the binary filter pipeline.  I had difficulty averaging out the lines between frames, which wound up being helped a great deal by modifying the parameters and colors used within the pipeline instead for better initial detection.  
 
-Once I increased the thresholds on a few of the pipeline "layers" and increased the width and decreased the length of the perspective transform area, I managed to clean up the lane detected dramatically.  Where this pipeline still under-performs is in areas of concrete roads where the lines are washed out by the lighter color backdrop.  For this I need to tweak the pipeline some more and possibly add some more color layers to the binary logic.
+Once I increased the thresholds on a few of the pipeline "layers" and increased the width and decreased the length of the perspective transform area, I managed to clean up the lane detected dramatically.  Where this pipeline still under-performs is in areas of concrete roads where the lines are washed out by the lighter color backdrop, or in areas where the car bounces or moves and moves the camera significantly.  Averaging the lines wth a buffer of previous line locations greatly improves the lane highlight, but when the car moves faster than the averaging allows, the highlighted lane takes time to catch up.
 
-A few things that will increase the robustness would be averaging the curve and lane lines between a few of the most recent frames, similar to the learning rate in neural networks.  Preventing drastic changes by a dampener such as this will improve accuracy and help when the road material changes or shadows appear.
+A few things that will increase the robustness might be using deep learning to find the lines instead of a buffer to keep up with rapid changes, or to use a camera with a built in gyroscope or gimbal.   

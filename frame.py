@@ -23,10 +23,6 @@ class Frame:
         self.Minv = None
         self.warped = None
 
-    def cut(self, points):
-        # Cut out areas of frame that aren't needed
-        return
-
     def abs_sobel_thresh(self, ch, orient='x', sobel_kernel=3, thresh=(0, 255)):
         # Calculate directional gradient
         # Apply threshold
@@ -101,6 +97,7 @@ class Frame:
         dst = np.float32(
             [corners[0] + offset, new_top_left + offset, new_top_right - offset,
              corners[3] - offset])
+        print(dst)
         self.M = cv2.getPerspectiveTransform(src, dst)
         self.Minv = cv2.getPerspectiveTransform(dst, src)
         self.warped = cv2.warpPerspective(image, self.M, (self.width, self.height), flags=cv2.INTER_LINEAR)

@@ -17,9 +17,6 @@ class Lane:
         # Store problematic frames
         self.issues = 0
 
-    def compare(self, left, right):
-        pass
-
     def find_peaks(self, image, threshold):
         half = image[(image.shape[0] // 2):, :, 0]
         data = np.sum(half, axis=0)
@@ -101,8 +98,6 @@ class Lane:
         pts = np.hstack((pts_left, pts_right))
 
         # Draw the lane onto the warped blank image
-        #print(color_warp.shape)
-        #print(pts[0, :, :])
         cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
 
         # Warp blank back to orig img space using inv perspective matrix (Minv)
