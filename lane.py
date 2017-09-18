@@ -21,7 +21,7 @@ class Lane:
         pass
 
     def find_peaks(self, image, threshold):
-        half = image[image.shape[0]/2:,:,0]
+        half = image[(image.shape[0] // 2):, :, 0]
         data = np.sum(half, axis=0)
         filtered = scipy.ndimage.filters.gaussian_filter1d(data, 20)
         peak_ind = signal.find_peaks_cwt(filtered, np.arange(20, 300))
@@ -45,43 +45,43 @@ class Lane:
                             dtype=np.int32)
         ignore_mask_color = (255, 255, 255)
         cv2.fillPoly(mask, vertices, ignore_mask_color)
-        masked = cv2.bitwise_and(mask, img)
+        masked = cv2.bitwise_and(mask, image)
         histogram = np.sum(masked[:, :, 0], axis=0)
         if max(histogram > 10000):
-            center = np.argmax(hist)
+            center = np.argmax(histogram)
         else:
             center = center_point
         return masked, center
 
-    def get_lane_binary(self, image, line, window_center, width=300):
+    def get_lane_binary(s, image, line, window_center, width=300):
         if line.detected:
-            window_center = line.bestx
+            window_center = line.line_base_pos
         else:
-            peaks, filtered = find_peaks(image, threshold=3000)
+            peaks, filtered = s.find_peaks(image, threshold=3000)
             if len(peaks) != 2:
                 print(str(len(peaks)), " lanes detected!")
-                plt.imsave('problem_frame_{}.jpg'.format(self.issues), image)
-                self.issues += 1
+                plt.imsave('problem_frame_{}.jpg'.format(s.issues), image)
+                s.issues += 1
             peak_indices = np.argmin(abs(peaks - window_center))
             window_center = peaks[peak_indices]
         num_zones = 6
         ny, nx, nc = image.shape
         zones = image.reshape(num_zones, -1, nx, nc)
         zones = zones[::-1]  # started from the bottom
-        window, center = increment_window(zones[0], window_center, width)
+        window, center = s.increment_window(zones[0], window_center, width)
         for zone in zones[1:]:
-            next_window, center = increment_window(zone, center, width)
+            next_window, center = s.increment_window(zone, center, width)
             window = np.vstack((next_window, window))
         return window
 
     def find_lines(s, left, right, binary_warped, image, vis=False):
 
         left_window_center = 340
-        left_binary = get_lane_binary(binary_warped, left, left_window_center,
+        left_binary = s.get_lane_binary(binary_warped, left, left_window_center,
                                       width=300)
 
         right_window_center = 940
-        right_binary = get_lane_binary(binary_warped, right,
+        right_binary = s.get_lane_binary(binary_warped, right,
                                        right_window_center, width=300)
 
         left.detected, left.num_buffered = left.update(left_binary)
@@ -91,18 +91,18 @@ class Lane:
 
     def draw(s, left, right, frame):
         # Create an image to draw the lines on
-        warp_zero = np.zeros_like(frame.warped).astype(np.uint8)
-        color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+        color_warp = np.zeros_like(frame.warped).astype(np.uint8)
 
         # Recast the x and y points into usable format for cv2.fillPoly()
-        pts_left = np.array([np.transpose(np.vstack([left.bestx,
-                                                     left.fit_yvals]))])
-        pts_right = np.array([np.flipud(np.transpose(np.vstack([right.bestx,
+        pts_left = np.array([np.transpose(np.vstack([left.average_x, left.fit_yvals]))])
+        pts_right = np.array([np.flipud(np.transpose(np.vstack([right.average_x,
                                                                 right.fit_yvals]
                                                                )))])
         pts = np.hstack((pts_left, pts_right))
 
         # Draw the lane onto the warped blank image
+        #print(color_warp.shape)
+        #print(pts[0, :, :])
         cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
 
         # Warp blank back to orig img space using inv perspective matrix (Minv)
@@ -124,7 +124,7 @@ class Lane:
         if left.radius_of_curvature and right.radius_of_curvature:
             curvature = 0.5 * (round(right.radius_of_curvature, 1) +
                                round(left.radius_of_curvature, 1))
-            label_str = 'Radius of Curve: %.1f m' % avg_curve
+            label_str = 'Radius of Curve: %.1f m' % curvature
             result = cv2.putText(result, label_str, (30, 40), 0, 1, (0, 0, 0), 2,
                              cv2.LINE_AA)
 

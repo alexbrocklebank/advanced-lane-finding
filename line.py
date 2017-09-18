@@ -1,17 +1,22 @@
 import numpy as np
 import cv2
+from collections import deque
 import matplotlib.pyplot as plt
 
 
 # Lane Line class
 class Line:
-    def __init__(self):
+    def __init__(self, n=5):
+        # Number of line fits stored in buffer
+        self.num_buffered = 0
+        # Buffer max for previous line fits
+        self.n = n
         # was the line detected in the last iteration?
         self.detected = False
         # x values of the last n fits of the line
-        self.recent_xfitted = []
+        self.recent_xfitted = deque([], maxlen=n)
         # coefficients of the last n fits of the line
-        self.recent_fitted
+        self.recent_fitted = deque([], maxlen=n)
         # average x values of the fitted line over the last n iterations
         self.bestx = None
         # always the same y-range as image
@@ -24,7 +29,7 @@ class Line:
         # polynomial coefficients for the most recent fit
         self.current_fit = [np.array([False])]
         #
-        self.current_fit_xvals = None
+        self.current_fit_xvals = [np.array([False])]
         # radius of curvature of the line in some units
         self.radius_of_curvature = None
         # line position in pixels at bottom of image
@@ -43,8 +48,6 @@ class Line:
         self.radius_change = 0
         # Line indices
         self.line_indices = []
-        #
-        self.num_buffered = None
 
     def curve_check(self, new_radius):
         if self.radius_of_curvature is None:
@@ -124,14 +127,14 @@ class Line:
         base_pos = 640
 
         # 3.7 meters is about 700 pixels in the x direction
-        self.vehicle_center = (self.line_pos - base_pos)*3.7/700.0
+        self.vehicle_center = (self.line_base_pos - base_pos) * 3.7 / 700.0
 
         if self.num_buffered > 0:
             self.diffs = self.current_fit - self.best_fit
         else:
             self.diffs = np.array([0, 0, 0], dtype='float')
 
-        if check_lane():
+        if self.check_line():
             self.detected = True
 
             self.recent_xfitted.appendleft(self.current_fit_xvals)
@@ -146,7 +149,7 @@ class Line:
 
             if self.num_buffered > 0:
                 self.recent_xfitted.pop()
-                self.recent_fit.pop()
+                self.recent_fitted.pop()
                 assert len(self.recent_xfitted) == len(self.recent_fitted)
                 self.num_buffered = len(self.recent_xfitted)
 

@@ -10,7 +10,7 @@ class Camera:
         self.dist = None
         self.rvecs = None
         self.tvecs = None
-        
+
     # Calibrate with images from camera_cal folder
     def calibrate(self, calibrate_dir, chessboard):
         # Create Object point Labels

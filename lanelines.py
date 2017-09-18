@@ -16,7 +16,7 @@ from frame import Frame
 # TODO: Allow command line switches
 # Variables
 calibrate_dir = "camera_cal/"
-chessboard = (9,6)
+chessboard = (9, 6)
 test_img = mpimg.imread("test_images/test5.jpg")
 #test_img = cv2.cvtColor(test_img, cv2.COLOR_RGB2HSV)
 # Sobel Kernel Size
@@ -89,7 +89,7 @@ def process_image(image):
     # Step 3: Perspective Transform
     p_t = frame.perspective_transform(binary)
     p_t = frame.crop(p_t)
-    test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
+    #test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
 
     # Step 4: Lane Lines
     #if lane.find_lines(lane_left, lane_right, p_t, image, vis=True):
