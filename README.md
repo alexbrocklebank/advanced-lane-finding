@@ -76,10 +76,10 @@ This resulted in the following source and destination points:
 
 | Source        | Destination   |
 |:-------------:|:-------------:|
-| 190, 720      | 340, 720        |
-| 589, 457      | 980, 720      |
-| 698, 457     | 300, 0      |
-| 1145, 720      | 980, 0        |
+| 190, 720      | 340, 720      |
+| 589, 457      | 340, 0        |
+| 698, 457      | 995, 0        |
+| 1145, 720     | 995, 720      |
 
 
 ![Perspective Transform][image2]

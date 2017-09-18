@@ -47,43 +47,43 @@ def process_image(image):
 
     # Set up Frame pipeline
     frame = Frame(image, undist)
-    test(frame.image, "Original Frame", undist, "Undistorted Image")
+    # test(frame.image, "Original Frame", undist, "Undistorted Image")
 
     S = frame.HLS[:, :, 2]
     hLs = frame.HLS[:, :, 1]
-    #Luv = frame.LUV[:, :, 0]
-    #B = frame.LAB[:, :, 2]
-    #gray = frame.gray
+    # Luv = frame.LUV[:, :, 0]
+    # B = frame.LAB[:, :, 2]
+    # gray = frame.gray
 
     # Absolute Value Sobel X Gradient using L-Channel in HLS
     sobel_x_binary = frame.abs_sobel_thresh(hLs, orient='x',
                                             sobel_kernel=ksize,
                                             thresh=(20, 255))
-    test(frame.image, "Original Frame", sobel_x_binary, "Sobel X Binary")
+    # test(frame.image, "Original Frame", sobel_x_binary, "Sobel X Binary")
 
     # Binary Thresholded from S-Channel of HLS
     s_binary = np.zeros_like(S)
     s_binary[(S >= 120) & (S <= 255)] = 1
-    test(frame.image, "Original Frame", s_binary, "S Binary")
+    # test(frame.image, "Original Frame", s_binary, "S Binary")
 
     # Thresholded Binary of L-Channel from HLS
     l_binary = np.zeros_like(hLs)
     l_binary[(hLs >= 40) & (hLs <= 255)] = 1
-    test(frame.image, "Original Frame", l_binary, "L Binary")
+    # test(frame.image, "Original Frame", l_binary, "L Binary")
 
     # Combined Binary of previous 3 binary images
     combined = 255*np.dstack((l_binary, sobel_x_binary,
                               s_binary)).astype('uint8')
-    test(frame.image, "Original Frame", combined, "Combined")
+    # test(frame.image, "Original Frame", combined, "Combined")
     binary = np.zeros_like(sobel_x_binary)
     binary[((l_binary == 1) & (s_binary == 1) | (sobel_x_binary == 1))] = 1
     binary = 255 * np.dstack((binary, binary, binary)).astype('uint8')
-    test(frame.image, "Original Frame", binary, "New Binary")
+    # test(frame.image, "Original Frame", binary, "New Binary")
 
     # Perspective Transform of Combined Binary
     p_t = frame.perspective_transform(binary)
     p_t = frame.crop(p_t)
-    test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
+    # test(frame.image, "Original Frame", p_t, "Perspective Transform and Crop")
 
     # Find Lane Lines or return untouched and undistorted frame
     if lane.find_lines(lane_left, lane_right, p_t, image):
@@ -95,10 +95,10 @@ def process_image(image):
 cam.calibrate(calibrate_dir, chessboard)
 
 # Single Image Test Code
-out = process_image(test_img)
-test(test_img, "In", out, "Out")
+# out = process_image(test_img)
+# test(test_img, "In", out, "Out")
 
 # Video Clip Pipeline
-#clip = VideoFileClip(input_video)
-#out_clip = clip.fl_image(process_image)
-#out_clip.write_videofile(output_video, audio=False)
+clip = VideoFileClip(input_video)
+out_clip = clip.fl_image(process_image)
+out_clip.write_videofile(output_video, audio=False)
