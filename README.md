@@ -15,9 +15,9 @@ The goals / steps of this project are the following:
 
 [image1]: ./output_images/orig_undistorted.png "Undistorted"
 [image2]: ./output_images/orig_pt.png "Perspective Transform"
-[image3]: ./output_images/orig_combined.png "Binary Example"
-[image4]: ./output_images/histogram.png "Line Points"
-[image5]: ./output_images/hist_highlight.png "Line Highlight"
+[image3]: ./output_images/orig_combin.png "Binary Example"
+[image4]: ./output_images/orig_sobelx.png "Sobel X"
+[image5]: ./output_images/orig_sbin.png "S Channel Binary"
 [image6]: ./output_images/output.png "Output"
 [video1]: ./video_output/output.mp4 "Video"
 
@@ -55,6 +55,8 @@ To demonstrate this step, I applied this distortion correction to the first fram
 
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 59 through 81 in `lanelines.py`), using the HLS color map.  These lines of code reference helper functions in frame.py, where I created a Frame class to manipulate a given frame.  Here's an example of my output for this step.  
 
+![Original vs. Sobel X Gradient Binary Image][image4]
+![Original vs. S Channel Binary Image][image5]
 ![Original vs. Thresholded Binary Image][image3]
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
@@ -87,8 +89,6 @@ This resulted in the following source and destination points:
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
 Within `line.py` on line 109 I fit the lane line pixels to a polynomial using numpy's polyfit() function.  Below is the resulting image of finding the lane-line pixels:
-
-![Lane-Line Points][image4]
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
